@@ -40,10 +40,10 @@ async function loadPyodideAndPackages(packages: string[] = []) {
 		packages: ['micropip']
 	});
 
-	const micropip = self.pyodide.pyimport('micropip');
+	//const micropip = self.pyodide.pyimport('micropip');
 
 	// await micropip.set_index_urls('https://pypi.org/pypi/{package_name}/json');
-	await micropip.install(packages);
+	// await micropip.install(packages); //
 }
 
 self.onmessage = async (event) => {
@@ -58,6 +58,8 @@ self.onmessage = async (event) => {
 
 	// make sure loading is done
 	await loadPyodideAndPackages(self.packages);
+	const loaded_packages = await self.pyodide.loadPackagesFromImports(code);
+	console.log({loaded_packages});
 
 	try {
 		self.result = await self.pyodide.runPythonAsync(code);

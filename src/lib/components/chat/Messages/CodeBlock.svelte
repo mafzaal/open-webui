@@ -147,20 +147,22 @@
 
 				// await micropip.set_index_urls('https://pypi.org/pypi/{package_name}/json');
 
-				let packages = [
-					code.includes('requests') ? 'requests' : null,
-					code.includes('bs4') ? 'beautifulsoup4' : null,
-					code.includes('numpy') ? 'numpy' : null,
-					code.includes('pandas') ? 'pandas' : null,
-					code.includes('matplotlib') ? 'matplotlib' : null,
-					code.includes('sklearn') ? 'scikit-learn' : null,
-					code.includes('scipy') ? 'scipy' : null,
-					code.includes('re') ? 'regex' : null,
-					code.includes('seaborn') ? 'seaborn' : null
-				].filter(Boolean);
+				// let packages = [
+				// 	code.includes('requests') ? 'requests' : null,
+				// 	code.includes('bs4') ? 'beautifulsoup4' : null,
+				// 	code.includes('numpy') ? 'numpy' : null,
+				// 	code.includes('pandas') ? 'pandas' : null,
+				// 	code.includes('matplotlib') ? 'matplotlib' : null,
+				// 	code.includes('sklearn') ? 'scikit-learn' : null,
+				// 	code.includes('scipy') ? 'scipy' : null,
+				// 	code.includes('re') ? 'regex' : null,
+				// 	code.includes('seaborn') ? 'seaborn' : null
+				// ].filter(Boolean);
 
-				console.log(packages);
-				await micropip.install(packages);
+				// console.log(packages);
+				// await micropip.install(packages);
+				const load_packages = await pyodide.loadPackagesFromImports(code);
+				console.log({load_packages});
 
 				result = await pyodide.runPythonAsync(`from js import prompt
 def input(p):

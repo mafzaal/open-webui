@@ -9,7 +9,24 @@ const packages = [
 	'scikit-learn',
 	'scipy',
 	'regex',
-	'seaborn'
+	'seaborn',
+	'networkx',
+	'statsmodels',
+	'biopython',
+	'lxml',
+	'tqdm',
+	'pillow',
+	'html5lib',
+	'asyncio',
+	'markdown',
+	'jinja2',
+	'plotly',
+	'xlrd',
+	'yt',
+	'altair',
+	'astropy',
+	'geopandas',
+	'cartopy'
 ];
 
 import { loadPyodide } from 'pyodide';
