@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { toast } from 'svelte-sonner';
 	import { createEventDispatcher, onMount, getContext } from 'svelte';
 	const dispatch = createEventDispatcher();
@@ -21,30 +23,34 @@
 
 	const i18n = getContext<Writable<i18nType>>('i18n');
 
-	export let saveHandler: () => void;
+	interface Props {
+		saveHandler: () => void;
+	}
+
+	let { saveHandler }: Props = $props();
 
 	// Audio
-	let TTS_OPENAI_API_BASE_URL = '';
-	let TTS_OPENAI_API_KEY = '';
-	let TTS_API_KEY = '';
-	let TTS_ENGINE = '';
-	let TTS_MODEL = '';
-	let TTS_VOICE = '';
-	let TTS_SPLIT_ON: TTS_RESPONSE_SPLIT = TTS_RESPONSE_SPLIT.PUNCTUATION;
-	let TTS_AZURE_SPEECH_REGION = '';
-	let TTS_AZURE_SPEECH_OUTPUT_FORMAT = '';
+	let TTS_OPENAI_API_BASE_URL = $state('');
+	let TTS_OPENAI_API_KEY = $state('');
+	let TTS_API_KEY = $state('');
+	let TTS_ENGINE = $state('');
+	let TTS_MODEL = $state('');
+	let TTS_VOICE = $state('');
+	let TTS_SPLIT_ON: TTS_RESPONSE_SPLIT = $state(TTS_RESPONSE_SPLIT.PUNCTUATION);
+	let TTS_AZURE_SPEECH_REGION = $state('');
+	let TTS_AZURE_SPEECH_OUTPUT_FORMAT = $state('');
 
-	let STT_OPENAI_API_BASE_URL = '';
-	let STT_OPENAI_API_KEY = '';
-	let STT_ENGINE = '';
-	let STT_MODEL = '';
-	let STT_WHISPER_MODEL = '';
+	let STT_OPENAI_API_BASE_URL = $state('');
+	let STT_OPENAI_API_KEY = $state('');
+	let STT_ENGINE = $state('');
+	let STT_MODEL = $state('');
+	let STT_WHISPER_MODEL = $state('');
 
-	let STT_WHISPER_MODEL_LOADING = false;
+	let STT_WHISPER_MODEL_LOADING = $state(false);
 
 	// eslint-disable-next-line no-undef
-	let voices: SpeechSynthesisVoice[] = [];
-	let models: Awaited<ReturnType<typeof _getModels>>['models'] = [];
+	let voices: SpeechSynthesisVoice[] = $state([]);
+	let models: Awaited<ReturnType<typeof _getModels>>['models'] = $state([]);
 
 	const getModels = async () => {
 		if (TTS_ENGINE === '') {
@@ -152,10 +158,10 @@
 
 <form
 	class="flex flex-col h-full justify-between space-y-3 text-sm"
-	on:submit|preventDefault={async () => {
+	onsubmit={preventDefault(async () => {
 		await updateConfigHandler();
 		dispatch('save');
-	}}
+	})}
 >
 	<div class=" space-y-3 overflow-y-scroll scrollbar-hidden h-full">
 		<div class="flex flex-col gap-3">
@@ -205,7 +211,7 @@
 								/>
 
 								<datalist id="model-list">
-									<option value="whisper-1" />
+									<option value="whisper-1"></option>
 								</datalist>
 							</div>
 						</div>
@@ -225,7 +231,7 @@
 
 							<button
 								class="px-2.5 bg-gray-50 hover:bg-gray-200 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-100 rounded-lg transition"
-								on:click={() => {
+								onclick={() => {
 									sttModelUpdateHandler();
 								}}
 								disabled={STT_WHISPER_MODEL_LOADING}
@@ -307,7 +313,7 @@
 							class=" dark:bg-gray-900 w-fit pr-8 cursor-pointer rounded px-2 p-1 text-xs bg-transparent outline-none text-right"
 							bind:value={TTS_ENGINE}
 							placeholder="Select a mode"
-							on:change={async (e) => {
+							onchange={async (e) => {
 								await updateConfigHandler();
 								await getVoices();
 								await getModels();
@@ -430,7 +436,7 @@
 
 									<datalist id="tts-model-list">
 										{#each models as model}
-											<option value={model.id} class="bg-gray-50 dark:bg-gray-700" />
+											<option value={model.id} class="bg-gray-50 dark:bg-gray-700"></option>
 										{/each}
 									</datalist>
 								</div>
@@ -471,7 +477,7 @@
 
 									<datalist id="tts-model-list">
 										{#each models as model}
-											<option value={model.id} class="bg-gray-50 dark:bg-gray-700" />
+											<option value={model.id} class="bg-gray-50 dark:bg-gray-700"></option>
 										{/each}
 									</datalist>
 								</div>

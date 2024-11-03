@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { stopPropagation } from 'svelte/legacy';
+
 	import { createEventDispatcher, getContext } from 'svelte';
 	import { formatFileSize } from '$lib/utils';
 
@@ -9,21 +11,36 @@
 	const i18n = getContext('i18n');
 	const dispatch = createEventDispatcher();
 
-	export let className = 'w-60';
-	export let colorClassName = 'bg-white dark:bg-gray-850 border border-gray-50 dark:border-white/5';
-	export let url: string | null = null;
 
-	export let dismissible = false;
-	export let loading = false;
 
-	export let item = null;
-	export let edit = false;
 
-	export let name: string;
-	export let type: string;
-	export let size: number;
+	interface Props {
+		className?: string;
+		colorClassName?: string;
+		url?: string | null;
+		dismissible?: boolean;
+		loading?: boolean;
+		item?: any;
+		edit?: boolean;
+		name: string;
+		type: string;
+		size: number;
+	}
 
-	let showModal = false;
+	let {
+		className = 'w-60',
+		colorClassName = 'bg-white dark:bg-gray-850 border border-gray-50 dark:border-white/5',
+		url = null,
+		dismissible = false,
+		loading = false,
+		item = $bindable(null),
+		edit = false,
+		name,
+		type,
+		size
+	}: Props = $props();
+
+	let showModal = $state(false);
 </script>
 
 {#if item}
@@ -33,7 +50,7 @@
 <button
 	class="relative group p-1.5 {className} flex items-center {colorClassName} rounded-2xl text-left"
 	type="button"
-	on:click={async () => {
+	onclick={async () => {
 		if (item?.file?.data?.content) {
 			showModal = !showModal;
 		} else {
@@ -97,9 +114,9 @@
 			<button
 				class=" bg-gray-400 text-white border border-white rounded-full group-hover:visible invisible transition"
 				type="button"
-				on:click|stopPropagation={() => {
+				onclick={stopPropagation(() => {
 					dispatch('dismiss');
-				}}
+				})}
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"

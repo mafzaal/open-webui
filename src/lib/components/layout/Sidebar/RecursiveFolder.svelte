@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: `<button>` is invalid inside `<button>` -->
 <script>
 	import { getContext, createEventDispatcher, onMount, onDestroy, tick } from 'svelte';
 
@@ -360,7 +361,7 @@
 			class="absolute top-0 left-0 w-full h-full rounded-sm bg-[hsla(260,85%,65%,0.1)] bg-opacity-50 dark:bg-opacity-10 z-50 pointer-events-none touch-none"
 		></div>
 	{/if}
-
+	
 	<Collapsible
 		bind:open
 		className="w-full"
@@ -372,13 +373,10 @@
 		}}
 	>
 		<!-- svelte-ignore a11y-no-static-element-interactions -->
-		<div class="w-full group">
-			<button
+		<div  class="w-full group">
+			<div
 				id="folder-{folderId}-button"
 				class="relative w-full py-1.5 px-2 rounded-md flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-500 font-medium hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-				on:dblclick={() => {
-					editHandler();
-				}}
 			>
 				<div class="text-gray-300 dark:text-gray-600">
 					{#if open}
@@ -388,25 +386,27 @@
 					{/if}
 				</div>
 
-				<div class="translate-y-[0.5px] flex-1 justify-start text-start line-clamp-1">
+				<div class="translate-y-[0.5px] flex-1 justify-start text-start line-clamp-1" ondblclick={() => {
+					editHandler();
+				}}>
 					{#if edit}
 						<input
 							id="folder-{folderId}-input"
 							type="text"
 							bind:value={name}
-							on:blur={() => {
+							onblur={() => {
 								nameUpdateHandler();
 								edit = false;
 							}}
-							on:click={(e) => {
+							onclick={(e) => {
 								// Prevent accidental collapse toggling when clicking inside input
 								e.stopPropagation();
 							}}
-							on:mousedown={(e) => {
+							onmousedown={(e) => {
 								// Prevent accidental collapse toggling when clicking inside input
 								e.stopPropagation();
 							}}
-							on:keydown={(e) => {
+							onkeydown={(e) => {
 								if (e.key === 'Enter') {
 									nameUpdateHandler();
 									edit = false;
@@ -419,11 +419,9 @@
 					{/if}
 				</div>
 
-				<button
+				<div
 					class="absolute z-10 right-2 invisible group-hover:visible self-center flex items-center dark:text-gray-300"
-					on:pointerup={(e) => {
-						e.stopPropagation();
-					}}
+				
 				>
 					<FolderMenu
 						on:rename={() => {
@@ -436,21 +434,23 @@
 							exportHandler();
 						}}
 					>
-						<button class="p-0.5 dark:hover:bg-gray-850 rounded-lg touch-auto" on:click={(e) => {}}>
+						<div class="p-0.5 dark:hover:bg-gray-850 rounded-lg touch-auto">
 							<EllipsisHorizontal className="size-4" strokeWidth="2.5" />
-						</button>
+						</div>
 					</FolderMenu>
-				</button>
-			</button>
+				</div>
+			</div>
 		</div>
 
-		<div slot="content" class="w-full">
+		{#snippet content()}
+		<div class="w-full">
+					
 			{#if (folders[folderId]?.childrenIds ?? []).length > 0 || (folders[folderId].items?.chats ?? []).length > 0}
 				<div
 					class="ml-3 pl-1 mt-[1px] flex flex-col overflow-y-auto scrollbar-hidden border-s border-gray-100 dark:border-gray-900"
 				>
 					{#if folders[folderId]?.childrenIds}
-						{@const children = folders[folderId]?.childrenIds
+						{@const sub_folders = folders[folderId]?.childrenIds
 							.map((id) => folders[id])
 							.sort((a, b) =>
 								a.name.localeCompare(b.name, undefined, {
@@ -459,7 +459,7 @@
 								})
 							)}
 
-						{#each children as childFolder (`${folderId}-${childFolder.id}`)}
+						{#each sub_folders as childFolder (`${folderId}-${childFolder.id}`)}
 							<svelte:self
 								{folders}
 								folderId={childFolder.id}
@@ -491,5 +491,9 @@
 				</div>
 			{/if}
 		</div>
+		{/snippet}
+
+		
 	</Collapsible>
+
 </div>

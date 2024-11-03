@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: Event attribute must be a JavaScript expression, not a string -->
 <script lang="ts">
 	import DOMPurify from 'dompurify';
 	import { createEventDispatcher, onMount } from 'svelte';
@@ -136,7 +137,7 @@
 			title={token.fileId}
 			width="100%"
 			frameborder="0"
-			onload="this.style.height=(this.contentWindow.document.body.scrollHeight+20)+'px';"
+			onload={() => this.style.height=(this.contentWindow.document.body.scrollHeight+20)+'px'}
 		></iframe>
 	{:else if token.type === 'paragraph'}
 		<p>

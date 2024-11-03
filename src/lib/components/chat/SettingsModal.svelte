@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getContext, tick } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import { models, settings, user } from '$lib/stores';
@@ -18,7 +20,11 @@
 
 	const i18n = getContext('i18n');
 
-	export let show = false;
+	interface Props {
+		show?: boolean;
+	}
+
+	let { show = $bindable(false) }: Props = $props();
 
 	const saveSettings = async (updated) => {
 		console.log(updated);
@@ -31,7 +37,7 @@
 		return await _getModels(localStorage.token);
 	};
 
-	let selectedTab = 'general';
+	let selectedTab = $state('general');
 
 	// Function to handle sideways scrolling
 	const scrollHandler = (event) => {
@@ -58,11 +64,13 @@
 		}
 	};
 
-	$: if (show) {
-		addScrollListener();
-	} else {
-		removeScrollListener();
-	}
+	run(() => {
+		if (show) {
+			addScrollListener();
+		} else {
+			removeScrollListener();
+		}
+	});
 </script>
 
 <Modal bind:show>
@@ -71,7 +79,7 @@
 			<div class=" text-lg font-medium self-center">{$i18n.t('Settings')}</div>
 			<button
 				class="self-center"
-				on:click={() => {
+				onclick={() => {
 					show = false;
 				}}
 			>
@@ -98,7 +106,7 @@
 					'general'
 						? 'bg-gray-100 dark:bg-gray-800'
 						: ' hover:bg-gray-100 dark:hover:bg-gray-850'}"
-					on:click={() => {
+					onclick={() => {
 						selectedTab = 'general';
 					}}
 				>
@@ -124,7 +132,7 @@
 					'interface'
 						? 'bg-gray-100 dark:bg-gray-800'
 						: ' hover:bg-gray-100 dark:hover:bg-gray-850'}"
-					on:click={() => {
+					onclick={() => {
 						selectedTab = 'interface';
 					}}
 				>
@@ -150,7 +158,7 @@
 					'personalization'
 						? 'bg-gray-100 dark:bg-gray-800'
 						: ' hover:bg-gray-100 dark:hover:bg-gray-850'}"
-					on:click={() => {
+					onclick={() => {
 						selectedTab = 'personalization';
 					}}
 				>
@@ -165,7 +173,7 @@
 					'audio'
 						? 'bg-gray-100 dark:bg-gray-800'
 						: ' hover:bg-gray-100 dark:hover:bg-gray-850'}"
-					on:click={() => {
+					onclick={() => {
 						selectedTab = 'audio';
 					}}
 				>
@@ -192,7 +200,7 @@
 					'chats'
 						? 'bg-gray-100 dark:bg-gray-800'
 						: ' hover:bg-gray-100 dark:hover:bg-gray-850'}"
-					on:click={() => {
+					onclick={() => {
 						selectedTab = 'chats';
 					}}
 				>
@@ -218,7 +226,7 @@
 					'account'
 						? 'bg-gray-100 dark:bg-gray-800'
 						: ' hover:bg-gray-100 dark:hover:bg-gray-850'}"
-					on:click={() => {
+					onclick={() => {
 						selectedTab = 'account';
 					}}
 				>
@@ -245,7 +253,7 @@
 						'admin'
 							? 'bg-gray-100 dark:bg-gray-800'
 							: ' hover:bg-gray-100 dark:hover:bg-gray-850'}"
-						on:click={async () => {
+						onclick={async () => {
 							await goto('/admin/settings');
 							show = false;
 						}}
@@ -273,7 +281,7 @@
 					'about'
 						? 'bg-gray-100 dark:bg-gray-800'
 						: ' hover:bg-gray-100 dark:hover:bg-gray-850'}"
-					on:click={() => {
+					onclick={() => {
 						selectedTab = 'about';
 					}}
 				>

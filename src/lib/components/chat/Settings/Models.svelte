@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { toast } from 'svelte-sonner';
 
 	import {
@@ -22,47 +24,51 @@
 
 	const i18n = getContext('i18n');
 
-	export let getModels: Function;
+	interface Props {
+		getModels: Function;
+	}
 
-	let modelUploadInputElement: HTMLInputElement;
+	let { getModels }: Props = $props();
+
+	let modelUploadInputElement: HTMLInputElement = $state();
 
 	// Models
 
-	let ollamaEnabled = null;
+	let ollamaEnabled = $state(null);
 
-	let OLLAMA_URLS = [];
-	let selectedOllamaUrlIdx: number | null = null;
+	let OLLAMA_URLS = $state([]);
+	let selectedOllamaUrlIdx: number | null = $state(null);
 
-	let updateModelId = null;
-	let updateProgress = null;
+	let updateModelId = $state(null);
+	let updateProgress = $state(null);
 
-	let showExperimentalOllama = false;
+	let showExperimentalOllama = $state(false);
 
-	let ollamaVersion = null;
+	let ollamaVersion = $state(null);
 	const MAX_PARALLEL_DOWNLOADS = 3;
 
-	let modelTransferring = false;
-	let modelTag = '';
+	let modelTransferring = $state(false);
+	let modelTag = $state('');
 
-	let createModelLoading = false;
-	let createModelTag = '';
-	let createModelContent = '';
-	let createModelDigest = '';
-	let createModelPullProgress = null;
+	let createModelLoading = $state(false);
+	let createModelTag = $state('');
+	let createModelContent = $state('');
+	let createModelDigest = $state('');
+	let createModelPullProgress = $state(null);
 
 	let digest = '';
 	let pullProgress = null;
 
-	let modelUploadMode = 'file';
-	let modelInputFile: File[] | null = null;
-	let modelFileUrl = '';
-	let modelFileContent = `TEMPLATE """{{ .System }}\nUSER: {{ .Prompt }}\nASSISTANT: """\nPARAMETER num_ctx 4096\nPARAMETER stop "</s>"\nPARAMETER stop "USER:"\nPARAMETER stop "ASSISTANT:"`;
-	let modelFileDigest = '';
+	let modelUploadMode = $state('file');
+	let modelInputFile: File[] | null = $state(null);
+	let modelFileUrl = $state('');
+	let modelFileContent = $state(`TEMPLATE """{{ .System }}\nUSER: {{ .Prompt }}\nASSISTANT: """\nPARAMETER num_ctx 4096\nPARAMETER stop "</s>"\nPARAMETER stop "USER:"\nPARAMETER stop "ASSISTANT:"`);
+	let modelFileDigest = $state('');
 
-	let uploadProgress = null;
-	let uploadMessage = '';
+	let uploadProgress = $state(null);
+	let uploadMessage = $state('');
 
-	let deleteModelTag = '';
+	let deleteModelTag = $state('');
 
 	const updateModelsHandler = async () => {
 		for (const model of $models.filter(
@@ -572,7 +578,7 @@
 									<Tooltip content="Update All Models" placement="top">
 										<button
 											class="p-2.5 flex gap-2 items-center bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-100 rounded-lg transition"
-											on:click={() => {
+											onclick={() => {
 												updateModelsHandler();
 											}}
 										>
@@ -615,7 +621,7 @@
 								</div>
 								<button
 									class="px-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-100 rounded-lg transition"
-									on:click={() => {
+									onclick={() => {
 										pullModelHandler();
 									}}
 									disabled={modelTransferring}
@@ -699,7 +705,7 @@
 													<Tooltip content={$i18n.t('Cancel')}>
 														<button
 															class="text-gray-800 dark:text-gray-100"
-															on:click={() => {
+															onclick={() => {
 																cancelModelPullHandler(model);
 															}}
 														>
@@ -759,7 +765,7 @@
 								</div>
 								<button
 									class="px-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-100 rounded-lg transition"
-									on:click={() => {
+									onclick={() => {
 										deleteModelHandler();
 									}}
 								>
@@ -798,13 +804,13 @@
 										rows="6"
 										placeholder={`TEMPLATE """{{ .System }}\nUSER: {{ .Prompt }}\nASSISTANT: """\nPARAMETER num_ctx 4096\nPARAMETER stop "</s>"\nPARAMETER stop "USER:"\nPARAMETER stop "ASSISTANT:"`}
 										disabled={createModelLoading}
-									/>
+									></textarea>
 								</div>
 
 								<div class="flex self-start">
 									<button
 										class="px-2.5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-100 rounded-lg transition disabled:cursor-not-allowed"
-										on:click={() => {
+										onclick={() => {
 											createModelHandler();
 										}}
 										disabled={createModelLoading}
@@ -856,7 +862,7 @@
 								<button
 									class=" text-xs font-medium text-gray-500"
 									type="button"
-									on:click={() => {
+									onclick={() => {
 										showExperimentalOllama = !showExperimentalOllama;
 									}}>{showExperimentalOllama ? $i18n.t('Hide') : $i18n.t('Show')}</button
 								>
@@ -865,16 +871,16 @@
 
 						{#if showExperimentalOllama}
 							<form
-								on:submit|preventDefault={() => {
+								onsubmit={preventDefault(() => {
 									uploadModelHandler();
-								}}
+								})}
 							>
 								<div class=" mb-2 flex w-full justify-between">
 									<div class="  text-sm font-medium">{$i18n.t('Upload a GGUF model')}</div>
 
 									<button
 										class="p-1 px-3 text-xs flex rounded transition"
-										on:click={() => {
+										onclick={() => {
 											if (modelUploadMode === 'file') {
 												modelUploadMode = 'url';
 											} else {
@@ -902,7 +908,7 @@
 													bind:this={modelUploadInputElement}
 													type="file"
 													bind:files={modelInputFile}
-													on:change={() => {
+													onchange={() => {
 														console.log(modelInputFile);
 													}}
 													accept=".gguf,.safetensors"
@@ -913,7 +919,7 @@
 												<button
 													type="button"
 													class="w-full rounded-lg text-left py-2 px-4 bg-white dark:text-gray-300 dark:bg-gray-850"
-													on:click={() => {
+													onclick={() => {
 														modelUploadInputElement.click();
 													}}
 												>
@@ -1003,7 +1009,7 @@
 												bind:value={modelFileContent}
 												class="w-full rounded-lg py-2 px-4 text-sm bg-gray-100 dark:text-gray-100 dark:bg-gray-850 outline-none resize-none"
 												rows="6"
-											/>
+											></textarea>
 										</div>
 									</div>
 								{/if}

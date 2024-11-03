@@ -1,13 +1,21 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { createEventDispatcher } from 'svelte';
 	const dispatch = createEventDispatcher();
 
-	export let state = 'unchecked';
-	export let indeterminate = false;
+	interface Props {
+		state?: string;
+		indeterminate?: boolean;
+	}
 
-	let _state = 'unchecked';
+	let { state = 'unchecked', indeterminate = false }: Props = $props();
 
-	$: _state = state;
+	let _state = $state('unchecked');
+
+	run(() => {
+		_state = state;
+	});
 </script>
 
 <button
@@ -15,7 +23,7 @@
 	'unchecked'
 		? 'bg-black outline-black '
 		: 'hover:outline-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800'} text-white transition-all rounded inline-block w-3.5 h-3.5 relative"
-	on:click={() => {
+	onclick={() => {
 		if (_state === 'unchecked') {
 			_state = 'checked';
 			dispatch('change', _state);

@@ -1,16 +1,27 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getContext, onMount, tick } from 'svelte';
 	import Modal from '$lib/components/common/Modal.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
 
 	const i18n = getContext('i18n');
 
-	export let show = false;
-	export let citation;
-	export let showPercentage = false;
-	export let showRelevance = true;
+	interface Props {
+		show?: boolean;
+		citation: any;
+		showPercentage?: boolean;
+		showRelevance?: boolean;
+	}
 
-	let mergedDocuments = [];
+	let {
+		show = $bindable(false),
+		citation,
+		showPercentage = false,
+		showRelevance = true
+	}: Props = $props();
+
+	let mergedDocuments = $state([]);
 
 	function calculatePercentage(distance: number) {
 		if (distance < 0) return 100;
@@ -28,19 +39,21 @@
 		return 'bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200';
 	}
 
-	$: if (citation) {
-		mergedDocuments = citation.document?.map((c, i) => {
-			return {
-				source: citation.source,
-				document: c,
-				metadata: citation.metadata?.[i],
-				distance: citation.distances?.[i]
-			};
-		});
-		if (mergedDocuments.every((doc) => doc.distance !== undefined)) {
-			mergedDocuments.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+	run(() => {
+		if (citation) {
+			mergedDocuments = citation.document?.map((c, i) => {
+				return {
+					source: citation.source,
+					document: c,
+					metadata: citation.metadata?.[i],
+					distance: citation.distances?.[i]
+				};
+			});
+			if (mergedDocuments.every((doc) => doc.distance !== undefined)) {
+				mergedDocuments.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+			}
 		}
-	}
+	});
 </script>
 
 <Modal size="lg" bind:show>
@@ -51,7 +64,7 @@
 			</div>
 			<button
 				class="self-center"
-				on:click={() => {
+				onclick={() => {
 					show = false;
 				}}
 			>

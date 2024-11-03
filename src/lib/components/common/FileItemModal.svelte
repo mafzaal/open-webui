@@ -10,12 +10,16 @@
 	import Switch from './Switch.svelte';
 	import Tooltip from './Tooltip.svelte';
 
-	export let item;
-	export let show = false;
 
-	export let edit = false;
+	interface Props {
+		item: any;
+		show?: boolean;
+		edit?: boolean;
+	}
 
-	let enableFullContent = false;
+	let { item = $bindable(), show = $bindable(false), edit = false }: Props = $props();
+
+	let enableFullContent = $state(false);
 
 	onMount(() => {
 		console.log(item);
@@ -44,7 +48,7 @@
 
 				<div>
 					<button
-						on:click={() => {
+						onclick={() => {
 							show = false;
 						}}
 					>

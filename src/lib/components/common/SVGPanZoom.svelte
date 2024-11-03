@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { onMount, getContext } from 'svelte';
 	const i18n = getContext('i18n');
 
@@ -11,23 +13,29 @@
 	import Tooltip from './Tooltip.svelte';
 	import Clipboard from '../icons/Clipboard.svelte';
 
-	export let className = '';
-	export let svg = '';
-	export let content = '';
-
-	let instance;
-
-	let sceneParentElement: HTMLElement;
-	let sceneElement: HTMLElement;
-
-	$: if (sceneElement) {
-		instance = panzoom(sceneElement, {
-			bounds: true,
-			boundsPadding: 0.1,
-
-			zoomSpeed: 0.065
-		});
+	interface Props {
+		className?: string;
+		svg?: string;
+		content?: string;
 	}
+
+	let { className = '', svg = '', content = '' }: Props = $props();
+
+	let instance = $state();
+
+	let sceneParentElement: HTMLElement = $state();
+	let sceneElement: HTMLElement = $state();
+
+	run(() => {
+		if (sceneElement) {
+			instance = panzoom(sceneElement, {
+				bounds: true,
+				boundsPadding: 0.1,
+
+				zoomSpeed: 0.065
+			});
+		}
+	});
 </script>
 
 <div bind:this={sceneParentElement} class="relative {className}">
@@ -40,7 +48,7 @@
 			<Tooltip content={$i18n.t('Copy to clipboard')}>
 				<button
 					class="p-1.5 rounded-lg border border-gray-100 dark:border-none dark:bg-gray-850 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-					on:click={() => {
+					onclick={() => {
 						copyToClipboard(content);
 						toast.success($i18n.t('Copied to clipboard'));
 					}}

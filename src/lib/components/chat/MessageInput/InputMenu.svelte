@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { DropdownMenu } from 'bits-ui';
 	import { flyAndScale } from '$lib/utils/transitions';
 	import { getContext } from 'svelte';
@@ -13,25 +15,39 @@
 
 	const i18n = getContext('i18n');
 
-	export let uploadFilesHandler: Function;
 
-	export let selectedToolIds: string[] = [];
-	export let webSearchEnabled: boolean;
 
-	export let tools = {};
-	export let onClose: Function;
+	interface Props {
+		uploadFilesHandler: Function;
+		selectedToolIds?: string[];
+		webSearchEnabled: boolean;
+		tools?: any;
+		onClose: Function;
+		children?: import('svelte').Snippet;
+	}
 
-	$: tools = Object.fromEntries(
-		Object.keys(tools).map((toolId) => [
-			toolId,
-			{
-				...tools[toolId],
-				enabled: selectedToolIds.includes(toolId)
-			}
-		])
-	);
+	let {
+		uploadFilesHandler,
+		selectedToolIds = $bindable([]),
+		webSearchEnabled = $bindable(),
+		tools = $bindable({}),
+		onClose,
+		children
+	}: Props = $props();
 
-	let show = false;
+	run(() => {
+		tools = Object.fromEntries(
+			Object.keys(tools).map((toolId) => [
+				toolId,
+				{
+					...tools[toolId],
+					enabled: selectedToolIds.includes(toolId)
+				}
+			])
+		);
+	});
+
+	let show = $state(false);
 </script>
 
 <Dropdown
@@ -43,75 +59,77 @@
 	}}
 >
 	<Tooltip content={$i18n.t('More')}>
-		<slot />
+		{@render children?.()}
 	</Tooltip>
 
-	<div slot="content">
-		<DropdownMenu.Content
-			class="w-full max-w-[200px] rounded-xl px-1 py-1  border-gray-300/30 dark:border-gray-700/50 z-50 bg-white dark:bg-gray-850 dark:text-white shadow"
-			sideOffset={15}
-			alignOffset={-8}
-			side="top"
-			align="start"
-			transition={flyAndScale}
-		>
-			{#if Object.keys(tools).length > 0}
-				<div class="  max-h-28 overflow-y-auto scrollbar-hidden">
-					{#each Object.keys(tools) as toolId}
-						<div
-							class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer rounded-xl"
-						>
-							<div class="flex-1">
-								<Tooltip
-									content={tools[toolId]?.description ?? ''}
-									placement="top-start"
-									className="flex flex-1  gap-2 items-center"
-								>
-									<WrenchSolid />
+	{#snippet content()}
+		<div >
+			<DropdownMenu.Content
+				class="w-full max-w-[200px] rounded-xl px-1 py-1  border-gray-300/30 dark:border-gray-700/50 z-50 bg-white dark:bg-gray-850 dark:text-white shadow"
+				sideOffset={15}
+				alignOffset={-8}
+				side="top"
+				align="start"
+				transition={flyAndScale}
+			>
+				{#if Object.keys(tools).length > 0}
+					<div class="  max-h-28 overflow-y-auto scrollbar-hidden">
+						{#each Object.keys(tools) as toolId}
+							<div
+								class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer rounded-xl"
+							>
+								<div class="flex-1">
+									<Tooltip
+										content={tools[toolId]?.description ?? ''}
+										placement="top-start"
+										className="flex flex-1  gap-2 items-center"
+									>
+										<WrenchSolid />
 
-									<div class=" line-clamp-1">{tools[toolId].name}</div>
-								</Tooltip>
+										<div class=" line-clamp-1">{tools[toolId].name}</div>
+									</Tooltip>
+								</div>
+
+								<Switch
+									bind:state={tools[toolId].enabled}
+									on:change={(e) => {
+										selectedToolIds = e.detail
+											? [...selectedToolIds, toolId]
+											: selectedToolIds.filter((id) => id !== toolId);
+									}}
+								/>
 							</div>
-
-							<Switch
-								bind:state={tools[toolId].enabled}
-								on:change={(e) => {
-									selectedToolIds = e.detail
-										? [...selectedToolIds, toolId]
-										: selectedToolIds.filter((id) => id !== toolId);
-								}}
-							/>
-						</div>
-					{/each}
-				</div>
-
-				<hr class="border-gray-100 dark:border-gray-800 my-1" />
-			{/if}
-
-			{#if $config?.features?.enable_web_search}
-				<div
-					class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer rounded-xl"
-				>
-					<div class="flex-1 flex items-center gap-2">
-						<GlobeAltSolid />
-						<div class=" line-clamp-1">{$i18n.t('Web Search')}</div>
+						{/each}
 					</div>
 
-					<Switch bind:state={webSearchEnabled} />
-				</div>
+					<hr class="border-gray-100 dark:border-gray-800 my-1" />
+				{/if}
 
-				<hr class="border-gray-100 dark:border-gray-800 my-1" />
-			{/if}
+				{#if $config?.features?.enable_web_search}
+					<div
+						class="flex gap-2 items-center px-3 py-2 text-sm font-medium cursor-pointer rounded-xl"
+					>
+						<div class="flex-1 flex items-center gap-2">
+							<GlobeAltSolid />
+							<div class=" line-clamp-1">{$i18n.t('Web Search')}</div>
+						</div>
 
-			<DropdownMenu.Item
-				class="flex gap-2 items-center px-3 py-2 text-sm  font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800  rounded-xl"
-				on:click={() => {
-					uploadFilesHandler();
-				}}
-			>
-				<DocumentArrowUpSolid />
-				<div class=" line-clamp-1">{$i18n.t('Upload Files')}</div>
-			</DropdownMenu.Item>
-		</DropdownMenu.Content>
-	</div>
+						<Switch bind:state={webSearchEnabled} />
+					</div>
+
+					<hr class="border-gray-100 dark:border-gray-800 my-1" />
+				{/if}
+
+				<DropdownMenu.Item
+					class="flex gap-2 items-center px-3 py-2 text-sm  font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800  rounded-xl"
+					on:click={() => {
+						uploadFilesHandler();
+					}}
+				>
+					<DocumentArrowUpSolid />
+					<div class=" line-clamp-1">{$i18n.t('Upload Files')}</div>
+				</DropdownMenu.Item>
+			</DropdownMenu.Content>
+		</div>
+	{/snippet}
 </Dropdown>

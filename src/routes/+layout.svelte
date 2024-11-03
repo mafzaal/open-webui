@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { io } from 'socket.io-client';
 	import { spring } from 'svelte/motion';
 
@@ -32,10 +32,15 @@
 	import { WEBUI_BASE_URL, WEBUI_HOSTNAME } from '$lib/constants';
 	import i18n, { initI18n, getLanguages } from '$lib/i18n';
 	import { bestMatchingLanguage } from '$lib/utils';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 
 	setContext('i18n', i18n);
 
-	let loaded = false;
+	let loaded = $state(false);
 	const BREAKPOINT = 768;
 
 	const setupSocket = () => {
@@ -206,7 +211,7 @@
 </svelte:head>
 
 {#if loaded}
-	<slot />
+	{@render children?.()}
 {/if}
 
 <Toaster

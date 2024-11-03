@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { getBackendConfig, getModelFilterConfig, updateModelFilterConfig } from '$lib/apis';
 	import { getSignUpEnabledStatus, toggleSignUpEnabledStatus } from '$lib/apis/auths';
 	import { getUserPermissions, updateUserPermissions } from '$lib/apis/users';
@@ -10,12 +12,16 @@
 
 	const i18n = getContext('i18n');
 
-	export let saveHandler: Function;
+	interface Props {
+		saveHandler: Function;
+	}
 
-	let defaultModelId = '';
+	let { saveHandler }: Props = $props();
 
-	let whitelistEnabled = false;
-	let whitelistModels = [''];
+	let defaultModelId = $state('');
+
+	let whitelistEnabled = $state(false);
+	let whitelistModels = $state(['']);
 	let permissions = {
 		chat: {
 			deletion: true,
@@ -24,9 +30,9 @@
 		}
 	};
 
-	let chatDeletion = true;
-	let chatEdit = true;
-	let chatTemporary = true;
+	let chatDeletion = $state(true);
+	let chatEdit = $state(true);
+	let chatTemporary = $state(true);
 
 	onMount(async () => {
 		permissions = await getUserPermissions(localStorage.token);
@@ -47,7 +53,7 @@
 
 <form
 	class="flex flex-col h-full justify-between space-y-3 text-sm"
-	on:submit|preventDefault={async () => {
+	onsubmit={preventDefault(async () => {
 		// console.log('submit');
 
 		await setDefaultModels(localStorage.token, defaultModelId);
@@ -62,7 +68,7 @@
 		saveHandler();
 
 		await config.set(await getBackendConfig());
-	}}
+	})}
 >
 	<div class=" space-y-3 overflow-y-scroll max-h-full">
 		<div>
@@ -128,13 +134,13 @@
 
 					{#if whitelistEnabled}
 						<div>
-							<div class=" space-y-1.5">
+							<div class="space-y-1.5">
 								{#each whitelistModels as modelId, modelIdx}
 									<div class="flex w-full">
 										<div class="flex-1 mr-2">
 											<select
 												class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-none"
-												bind:value={modelId}
+												bind:value={modelId[modelIdx]}
 												placeholder="Select a model"
 											>
 												<option value="" disabled selected>{$i18n.t('Select a model')}</option>
@@ -150,7 +156,7 @@
 											<button
 												class="px-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-900 dark:text-white rounded-lg transition"
 												type="button"
-												on:click={() => {
+												onclick={() => {
 													if (whitelistModels.at(-1) !== '') {
 														whitelistModels = [...whitelistModels, ''];
 													}
@@ -171,7 +177,7 @@
 											<button
 												class="px-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-900 dark:text-white rounded-lg transition"
 												type="button"
-												on:click={() => {
+												onclick={() => {
 													whitelistModels.splice(modelIdx, 1);
 													whitelistModels = whitelistModels;
 												}}

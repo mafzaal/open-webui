@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import Fuse from 'fuse.js';
 
 	import dayjs from 'dayjs';
@@ -23,20 +25,22 @@
 	import ItemMenu from './Knowledge/ItemMenu.svelte';
 	import Badge from '../common/Badge.svelte';
 
-	let query = '';
-	let selectedItem = null;
-	let showDeleteConfirm = false;
+	let query = $state('');
+	let selectedItem = $state(null);
+	let showDeleteConfirm = $state(false);
 
-	let fuse = null;
+	let fuse = $state(null);
 
-	let filteredItems = [];
-	$: if (fuse) {
-		filteredItems = query
-			? fuse.search(query).map((e) => {
-					return e.item;
-				})
-			: $knowledge;
-	}
+	let filteredItems = $state([]);
+	run(() => {
+		if (fuse) {
+			filteredItems = query
+				? fuse.search(query).map((e) => {
+						return e.item;
+					})
+				: $knowledge;
+		}
+	});
 
 	const deleteHandler = async (item) => {
 		const res = await deleteKnowledgeById(localStorage.token, item.id).catch((e) => {
@@ -100,7 +104,7 @@
 		<button
 			class=" px-2 py-2 rounded-xl border border-gray-50 dark:border-gray-800 dark:border-0 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 transition font-medium text-sm flex items-center space-x-1"
 			aria-label={$i18n.t('Create Knowledge')}
-			on:click={() => {
+			onclick={() => {
 				goto('/workspace/knowledge/create');
 			}}
 		>
@@ -122,7 +126,7 @@
 	<div class="flex justify-between items-center">
 		<div class="flex md:self-center text-base font-medium px-0.5">
 			{$i18n.t('Knowledge')}
-			<div class="flex self-center w-[1px] h-6 mx-2.5 bg-gray-50 dark:bg-gray-850" />
+			<div class="flex self-center w-[1px] h-6 mx-2.5 bg-gray-50 dark:bg-gray-850"></div>
 			<span class="text-base font-medium text-gray-500 dark:text-gray-300"
 				>{filteredItems.length}</span
 			>
@@ -134,7 +138,7 @@
 	{#each filteredItems as item}
 		<button
 			class=" flex space-x-4 cursor-pointer text-left w-full px-4 py-3 border border-gray-50 dark:border-gray-850 dark:hover:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-850 transition rounded-xl"
-			on:click={() => {
+			onclick={() => {
 				if (item?.meta?.document) {
 					toast.error(
 						$i18n.t(

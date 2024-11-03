@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: Cannot subscribe to stores that are not declared at the top level of the component -->
 <script lang="ts">
 	import { v4 as uuidv4 } from 'uuid';
 	import { toast } from 'svelte-sonner';
@@ -653,20 +654,20 @@
 
 		await tick();
 
-		if ($chatId == chatId) {
-			if (!$temporaryChatEnabled) {
-				chat = await updateChatById(localStorage.token, chatId, {
-					models: selectedModels,
-					messages: messages,
-					history: history,
-					params: params,
-					files: chatFiles
-				});
+		// if ($chatId == chatIdProp) {
+		// 	if (!$temporaryChatEnabled) {
+		// 		chat = await updateChatById(localStorage.token, $chatId, {
+		// 			models: selectedModels,
+		// 			messages: messages,
+		// 			history: history,
+		// 			params: params,
+		// 			files: chatFiles
+		// 		});
 
-				currentChatPage.set(1);
-				await chats.set(await getChatList(localStorage.token, $currentChatPage));
-			}
-		}
+		// 		currentChatPage.set(1);
+		// 		await chats.set(await getChatList(localStorage.token, $currentChatPage));
+		// 	}
+		// }
 	};
 
 	const chatActionHandler = async (chatId, actionId, modelId, responseMessageId, event = null) => {
@@ -704,20 +705,20 @@
 			}
 		}
 
-		if ($chatId == chatId) {
-			if (!$temporaryChatEnabled) {
-				chat = await updateChatById(localStorage.token, chatId, {
-					models: selectedModels,
-					messages: messages,
-					history: history,
-					params: params,
-					files: chatFiles
-				});
+		// if ($chatId == chatId) {
+		// 	if (!$temporaryChatEnabled) {
+		// 		chat = await updateChatById(localStorage.token, chatId, {
+		// 			models: selectedModels,
+		// 			messages: messages,
+		// 			history: history,
+		// 			params: params,
+		// 			files: chatFiles
+		// 		});
 
-				currentChatPage.set(1);
-				await chats.set(await getChatList(localStorage.token, $currentChatPage));
-			}
-		}
+		// 		currentChatPage.set(1);
+		// 		await chats.set(await getChatList(localStorage.token, $currentChatPage));
+		// 	}
+		// }
 	};
 
 	const getChatEventEmitter = async (modelId: string, chatId: string = '') => {

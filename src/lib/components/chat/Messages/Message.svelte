@@ -12,29 +12,50 @@
 	import ResponseMessage from './ResponseMessage.svelte';
 	import UserMessage from './UserMessage.svelte';
 
-	export let chatId;
-	export let idx = 0;
 
-	export let history;
-	export let messageId;
 
-	export let user;
 
-	export let showPreviousMessage;
-	export let showNextMessage;
 
-	export let editMessage;
-	export let deleteMessage;
-	export let rateMessage;
 
-	export let regenerateResponse;
-	export let continueResponse;
 
-	// MultiResponseMessages
-	export let mergeResponses;
+	
 
-	export let autoScroll = false;
-	export let readOnly = false;
+	interface Props {
+		chatId: any;
+		idx?: number;
+		history: any;
+		messageId: any;
+		user: any;
+		showPreviousMessage: any;
+		showNextMessage: any;
+		editMessage: any;
+		deleteMessage: any;
+		rateMessage: any;
+		regenerateResponse: any;
+		continueResponse: any;
+		// MultiResponseMessages
+		mergeResponses: any;
+		autoScroll?: boolean;
+		readOnly?: boolean;
+	}
+
+	let {
+		chatId,
+		idx = 0,
+		history = $bindable(),
+		messageId,
+		user,
+		showPreviousMessage,
+		showNextMessage,
+		editMessage,
+		deleteMessage,
+		rateMessage,
+		regenerateResponse,
+		continueResponse,
+		mergeResponses,
+		autoScroll = false,
+		readOnly = false
+	}: Props = $props();
 
 	onMount(() => {
 		// console.log('message', idx);

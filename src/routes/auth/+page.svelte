@@ -1,4 +1,6 @@
 <script>
+	import { preventDefault } from 'svelte/legacy';
+
 	import { goto } from '$app/navigation';
 	import { getSessionUser, userSignIn, userSignUp } from '$lib/apis/auths';
 	import Spinner from '$lib/components/common/Spinner.svelte';
@@ -12,12 +14,12 @@
 
 	const i18n = getContext('i18n');
 
-	let loaded = false;
-	let mode = 'signin';
+	let loaded = $state(false);
+	let mode = $state('signin');
 
-	let name = '';
-	let email = '';
-	let password = '';
+	let name = $state('');
+	let email = $state('');
+	let password = $state('');
 
 	const setSessionUser = async (sessionUser) => {
 		if (sessionUser) {
@@ -152,9 +154,9 @@
 				<div class="  my-auto pb-10 w-full dark:text-gray-100">
 					<form
 						class=" flex flex-col justify-center"
-						on:submit|preventDefault={() => {
+						onsubmit={preventDefault(() => {
 							submitHandler();
-						}}
+						})}
 					>
 						<div class="mb-1">
 							<div class=" text-2xl font-medium">
@@ -238,7 +240,7 @@
 										<button
 											class=" font-medium underline"
 											type="button"
-											on:click={() => {
+											onclick={() => {
 												if (mode === 'signin') {
 													mode = 'signup';
 												} else {
@@ -268,7 +270,7 @@
 							{#if $config?.oauth?.providers?.google}
 								<button
 									class="flex items-center px-6 border-2 dark:border-gray-800 duration-300 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-2xl dark:text-white text-sm py-3 transition"
-									on:click={() => {
+									onclick={() => {
 										window.location.href = `${WEBUI_BASE_URL}/oauth/google/login`;
 									}}
 								>
@@ -293,7 +295,7 @@
 							{#if $config?.oauth?.providers?.microsoft}
 								<button
 									class="flex items-center px-6 border-2 dark:border-gray-800 duration-300 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-2xl dark:text-white text-sm py-3 transition"
-									on:click={() => {
+									onclick={() => {
 										window.location.href = `${WEBUI_BASE_URL}/oauth/microsoft/login`;
 									}}
 								>
@@ -318,7 +320,7 @@
 							{#if $config?.oauth?.providers?.oidc}
 								<button
 									class="flex items-center px-6 border-2 dark:border-gray-800 duration-300 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 w-full rounded-2xl dark:text-white text-sm py-3 transition"
-									on:click={() => {
+									onclick={() => {
 										window.location.href = `${WEBUI_BASE_URL}/oauth/oidc/login`;
 									}}
 								>

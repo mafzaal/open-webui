@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import { toast } from 'svelte-sonner';
 	import { v4 as uuidv4 } from 'uuid';
 
@@ -35,50 +37,72 @@
 
 	const i18n = getContext('i18n');
 
-	export let transparentBackground = false;
 
-	export let createMessagePair: Function;
-	export let stopResponse: Function;
 
-	export let autoScroll = false;
 
-	export let atSelectedModel: Model | undefined;
-	export let selectedModels: [''];
 
-	export let history;
 
-	export let prompt = '';
-	export let files = [];
-	export let availableToolIds = [];
-	export let selectedToolIds = [];
-	export let webSearchEnabled = false;
 
-	let recording = false;
+	let recording = $state(false);
 
-	let chatInputContainerElement;
-	let chatInputElement;
+	let chatInputContainerElement = $state();
+	let chatInputElement = $state();
 
-	let filesInputElement;
-	let commandsElement;
+	let filesInputElement = $state();
+	let commandsElement = $state();
 
-	let inputFiles;
-	let dragged = false;
+	let inputFiles = $state();
+	let dragged = $state(false);
 
-	let user = null;
-	export let placeholder = '';
-
-	let visionCapableModels = [];
-	$: visionCapableModels = [...(atSelectedModel ? [atSelectedModel] : selectedModels)].filter(
-		(model) => $models.find((m) => m.id === model)?.info?.meta?.capabilities?.vision ?? true
-	);
-
-	$: if (prompt) {
-		if (chatInputContainerElement) {
-			chatInputContainerElement.style.height = '';
-			chatInputContainerElement.style.height =
-				Math.min(chatInputContainerElement.scrollHeight, 200) + 'px';
-		}
+	let user = $state(null);
+	interface Props {
+		transparentBackground?: boolean;
+		createMessagePair: Function;
+		stopResponse: Function;
+		autoScroll?: boolean;
+		atSelectedModel: Model | undefined;
+		selectedModels: [''];
+		history: any;
+		prompt?: string;
+		files?: any;
+		availableToolIds?: any;
+		selectedToolIds?: any;
+		webSearchEnabled?: boolean;
+		placeholder?: string;
 	}
+
+	let {
+		transparentBackground = false,
+		createMessagePair,
+		stopResponse,
+		autoScroll = $bindable(false),
+		atSelectedModel = $bindable(),
+		selectedModels,
+		history,
+		prompt = $bindable(''),
+		files = $bindable([]),
+		availableToolIds = [],
+		selectedToolIds = $bindable([]),
+		webSearchEnabled = $bindable(false),
+		placeholder = ''
+	}: Props = $props();
+
+	let visionCapableModels = $state([]);
+	run(() => {
+		visionCapableModels = [...(atSelectedModel ? [atSelectedModel] : selectedModels)].filter(
+			(model) => $models.find((m) => m.id === model)?.info?.meta?.capabilities?.vision ?? true
+		);
+	});
+
+	run(() => {
+		if (prompt) {
+			if (chatInputContainerElement) {
+				chatInputContainerElement.style.height = '';
+				chatInputContainerElement.style.height =
+					Math.min(chatInputContainerElement.scrollHeight, 200) + 'px';
+			}
+		}
+	});
 
 	const scrollToBottom = () => {
 		const element = document.getElementById('messages-container');
@@ -266,7 +290,7 @@
 					>
 						<button
 							class=" bg-white border border-gray-100 dark:border-none dark:bg-white/20 p-1.5 rounded-full pointer-events-auto"
-							on:click={() => {
+							onclick={() => {
 								autoScroll = true;
 								scrollToBottom();
 							}}
@@ -311,7 +335,7 @@
 						<div>
 							<button
 								class="flex items-center"
-								on:click={() => {
+								onclick={() => {
 									atSelectedModel = undefined;
 								}}
 							>
@@ -352,7 +376,7 @@
 					type="file"
 					hidden
 					multiple
-					on:change={async () => {
+					onchange={async () => {
 						if (inputFiles && inputFiles.length > 0) {
 							const _inputFiles = Array.from(inputFiles);
 							inputFilesHandler(_inputFiles);
@@ -390,10 +414,10 @@
 				{:else}
 					<form
 						class="w-full flex gap-1.5"
-						on:submit|preventDefault={() => {
+						onsubmit={preventDefault(() => {
 							// check if selectedModels support image input
 							dispatch('submit', prompt);
-						}}
+						})}
 					>
 						<div
 							class="flex-1 flex flex-col relative w-full rounded-3xl px-1.5 bg-gray-50 dark:bg-gray-850 dark:text-gray-100"
@@ -438,7 +462,7 @@
 													<button
 														class=" bg-gray-400 text-white border border-white rounded-full group-hover:visible invisible transition"
 														type="button"
-														on:click={() => {
+														onclick={() => {
 															files.splice(fileIdx, 1);
 															files = files;
 														}}
@@ -697,7 +721,7 @@
 										class="scrollbar-hidden bg-gray-50 dark:bg-gray-850 dark:text-gray-100 outline-none w-full py-3 px-1 rounded-xl resize-none h-[48px]"
 										placeholder={placeholder ? placeholder : $i18n.t('Send a Message')}
 										bind:value={prompt}
-										on:keypress={(e) => {
+										onkeypress={(e) => {
 											if (
 												!$mobile ||
 												!(
@@ -717,7 +741,7 @@
 												}
 											}
 										}}
-										on:keydown={async (e) => {
+										onkeydown={async (e) => {
 											const isCtrlPressed = e.ctrlKey || e.metaKey; // metaKey is for Cmd key on Mac
 											const commandsContainerElement =
 												document.getElementById('commands-container');
@@ -829,16 +853,16 @@
 											}
 										}}
 										rows="1"
-										on:input={async (e) => {
+										oninput={async (e) => {
 											e.target.style.height = '';
 											e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
 											user = null;
 										}}
-										on:focus={async (e) => {
+										onfocus={async (e) => {
 											e.target.style.height = '';
 											e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
 										}}
-										on:paste={async (e) => {
+										onpaste={async (e) => {
 											const clipboardData = e.clipboardData || window.clipboardData;
 
 											if (clipboardData && clipboardData.items) {
@@ -862,7 +886,7 @@
 												}
 											}
 										}}
-									/>
+									></textarea>
 								{/if}
 
 								<div class="self-end mb-2 flex space-x-1 mr-1">
@@ -872,7 +896,7 @@
 												id="voice-input-button"
 												class=" text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-850 transition rounded-full p-1.5 mr-0.5 self-center"
 												type="button"
-												on:click={async () => {
+												onclick={async () => {
 													try {
 														let stream = await navigator.mediaDevices
 															.getUserMedia({ audio: true })
@@ -925,7 +949,7 @@
 											<button
 												class=" text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-850 transition rounded-full p-2 self-center"
 												type="button"
-												on:click={async () => {
+												onclick={async () => {
 													if (selectedModels.length > 1) {
 														toast.error($i18n.t('Select only one model to call'));
 
@@ -996,7 +1020,7 @@
 									<Tooltip content={$i18n.t('Stop')}>
 										<button
 											class="bg-white hover:bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-800 transition rounded-full p-1.5"
-											on:click={() => {
+											onclick={() => {
 												stopResponse();
 											}}
 										>

@@ -5,7 +5,13 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let banner: Banner = {
+
+	interface Props {
+		banner?: Banner;
+		dismissed?: boolean;
+	}
+
+	let { banner = {
 		id: '',
 		type: 'info',
 		title: '',
@@ -13,11 +19,9 @@
 		url: '',
 		dismissable: true,
 		timestamp: Math.floor(Date.now() / 1000)
-	};
+	}, dismissed = $bindable(false) }: Props = $props();
 
-	export let dismissed = false;
-
-	let mounted = false;
+	let mounted = $state(false);
 
 	const classNames: Record<string, string> = {
 		info: 'bg-blue-500/20 text-blue-700 dark:text-blue-200 ',
@@ -113,7 +117,7 @@
 			<div class="flex self-start">
 				{#if banner.dismissible}
 					<button
-						on:click={() => {
+						onclick={() => {
 							dismiss(banner.id);
 						}}
 						class="  -mt-1 -mb-2 -translate-y-[1px] ml-1.5 mr-1 text-gray-400 dark:hover:text-white"

@@ -15,35 +15,46 @@
 
 	const i18n = getContext('i18n');
 
-	export let eventTarget: EventTarget;
-	export let submitPrompt: Function;
-	export let stopResponse: Function;
-	export let files;
-	export let chatId;
-	export let modelId;
+	interface Props {
+		eventTarget: EventTarget;
+		submitPrompt: Function;
+		stopResponse: Function;
+		files: any;
+		chatId: any;
+		modelId: any;
+	}
+
+	let {
+		eventTarget,
+		submitPrompt,
+		stopResponse,
+		files = $bindable(),
+		chatId,
+		modelId
+	}: Props = $props();
 
 	let wakeLock = null;
 
-	let model = null;
+	let model = $state(null);
 
-	let loading = false;
+	let loading = $state(false);
 	let confirmed = false;
 	let interrupted = false;
-	let assistantSpeaking = false;
+	let assistantSpeaking = $state(false);
 
-	let emoji = null;
-	let camera = false;
-	let cameraStream = null;
+	let emoji = $state(null);
+	let camera = $state(false);
+	let cameraStream = $state(null);
 
 	let chatStreaming = false;
-	let rmsLevel = 0;
+	let rmsLevel = $state(0);
 	let hasStartedSpeaking = false;
 	let mediaRecorder;
-	let audioStream = null;
+	let audioStream = $state(null);
 	let audioChunks = [];
 
-	let videoInputDevices = [];
-	let selectedVideoInputDeviceId = null;
+	let videoInputDevices = $state([]);
+	let selectedVideoInputDeviceId = $state(null);
 
 	const getVideoInputDevices = async () => {
 		const devices = await navigator.mediaDevices.enumerateDevices();
@@ -668,7 +679,7 @@
 			<button
 				type="button"
 				class="flex justify-center items-center w-full h-20 min-h-20"
-				on:click={() => {
+				onclick={() => {
 					if (assistantSpeaking) {
 						stopAllAudio();
 					}
@@ -740,7 +751,7 @@
 						'/static/favicon.png'
 							? `background-image: url('${model?.info?.meta?.profile_image_url}');`
 							: ''}
-					/>
+					></div>
 				{/if}
 				<!-- navbar -->
 			</button>
@@ -750,7 +761,7 @@
 			{#if !camera}
 				<button
 					type="button"
-					on:click={() => {
+					onclick={() => {
 						if (assistantSpeaking) {
 							stopAllAudio();
 						}
@@ -822,7 +833,7 @@
 							'/static/favicon.png'
 								? `background-image: url('${model?.info?.meta?.profile_image_url}');`
 								: ''}
-						/>
+						></div>
 					{/if}
 				</button>
 			{:else}
@@ -832,15 +843,15 @@
 						autoplay
 						class="rounded-2xl h-full min-w-full object-cover object-center"
 						playsinline
-					/>
+					></video>
 
-					<canvas id="camera-canvas" style="display:none;" />
+					<canvas id="camera-canvas" style="display:none;"></canvas>
 
 					<div class=" absolute top-4 md:top-8 left-4">
 						<button
 							type="button"
 							class="p-1.5 text-white cursor-pointer backdrop-blur-xl bg-black/10 rounded-full"
-							on:click={() => {
+							onclick={() => {
 								stopCamera();
 							}}
 						>
@@ -892,7 +903,7 @@
 						<button
 							class=" p-3 rounded-full bg-gray-50 dark:bg-gray-900"
 							type="button"
-							on:click={async () => {
+							onclick={async () => {
 								await navigator.mediaDevices.getUserMedia({ video: true });
 								startCamera();
 							}}
@@ -924,7 +935,7 @@
 			<div>
 				<button
 					type="button"
-					on:click={() => {
+					onclick={() => {
 						if (assistantSpeaking) {
 							stopAllAudio();
 						}
@@ -945,7 +956,7 @@
 			<div>
 				<button
 					class=" p-3 rounded-full bg-gray-50 dark:bg-gray-900"
-					on:click={async () => {
+					onclick={async () => {
 						await stopAudioStream();
 						await stopVideoStream();
 

@@ -1,16 +1,27 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { onMount, tick } from 'svelte';
 
-	export let value = '';
-	export let placeholder = '';
 
-	export let rows = 1;
-	export let required = false;
 
-	export let className =
-		'w-full rounded-lg px-3 py-2 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-none resize-none h-full';
+	interface Props {
+		value?: string;
+		placeholder?: string;
+		rows?: number;
+		required?: boolean;
+		className?: string;
+	}
 
-	let textareaElement;
+	let {
+		value = $bindable(''),
+		placeholder = '',
+		rows = 1,
+		required = false,
+		className = 'w-full rounded-lg px-3 py-2 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-none resize-none h-full'
+	}: Props = $props();
+
+	let textareaElement = $state();
 
 	onMount(async () => {
 		await tick();
@@ -20,9 +31,6 @@
 		}
 	});
 
-	$: if (value) {
-		setTimeout(adjustHeight, 0);
-	}
 
 	const adjustHeight = () => {
 		if (textareaElement) {
@@ -30,15 +38,20 @@
 			textareaElement.style.height = `${textareaElement.scrollHeight}px`;
 		}
 	};
+	run(() => {
+		if (value) {
+			setTimeout(adjustHeight, 0);
+		}
+	});
 </script>
 
 <textarea
 	bind:this={textareaElement}
 	bind:value
 	{placeholder}
-	on:input={adjustHeight}
-	on:focus={adjustHeight}
+	oninput={adjustHeight}
+	onfocus={adjustHeight}
 	class={className}
 	{rows}
 	{required}
-/>
+></textarea>

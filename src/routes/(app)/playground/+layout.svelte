@@ -3,6 +3,11 @@
 	import { WEBUI_NAME, showSidebar, functions } from '$lib/stores';
 	import MenuLines from '$lib/components/icons/MenuLines.svelte';
 	import { page } from '$app/stores';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 
 	const i18n = getContext('i18n');
 
@@ -26,7 +31,7 @@
 				<button
 					id="sidebar-toggle-button"
 					class="cursor-pointer p-1.5 flex rounded-xl hover:bg-gray-100 dark:hover:bg-gray-850 transition"
-					on:click={() => {
+					onclick={() => {
 						showSidebar.set(!$showSidebar);
 					}}
 					aria-label="Toggle Sidebar"
@@ -74,6 +79,6 @@
 	</div>
 
 	<div class=" flex-1 max-h-full overflow-y-auto">
-		<slot />
+		{@render children?.()}
 	</div>
 </div>

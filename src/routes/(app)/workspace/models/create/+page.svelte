@@ -1,4 +1,6 @@
 <script>
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import { v4 as uuidv4 } from 'uuid';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
@@ -32,23 +34,23 @@
 
 	const i18n = getContext('i18n');
 
-	let filesInputElement;
-	let inputFiles;
+	let filesInputElement = $state();
+	let inputFiles = $state();
 
-	let showAdvanced = false;
-	let showPreview = false;
+	let showAdvanced = $state(false);
+	let showPreview = $state(false);
 
-	let loading = false;
+	let loading = $state(false);
 	let success = false;
 
 	// ///////////
 	// Model
 	// ///////////
 
-	let id = '';
-	let name = '';
+	let id = $state('');
+	let name = $state('');
 
-	let info = {
+	let info = $state({
 		id: '',
 		base_model_id: null,
 		name: '',
@@ -64,25 +66,27 @@
 		params: {
 			system: ''
 		}
-	};
+	});
 
-	let params = {};
-	let capabilities = {
+	let params = $state({});
+	let capabilities = $state({
 		vision: true,
 		usage: undefined
-	};
+	});
 
-	let toolIds = [];
-	let knowledge = [];
-	let filterIds = [];
-	let actionIds = [];
+	let toolIds = $state([]);
+	let knowledge = $state([]);
+	let filterIds = $state([]);
+	let actionIds = $state([]);
 
-	$: if (name) {
-		id = name
-			.replace(/\s+/g, '-')
-			.replace(/[^a-zA-Z0-9-]/g, '')
-			.toLowerCase();
-	}
+	run(() => {
+		if (name) {
+			id = name
+				.replace(/\s+/g, '-')
+				.replace(/[^a-zA-Z0-9-]/g, '')
+				.toLowerCase();
+		}
+	});
 
 	const addUsage = (base_model_id) => {
 		const baseModel = $models.find((m) => m.id === base_model_id);
@@ -256,7 +260,7 @@
 		type="file"
 		hidden
 		accept="image/*"
-		on:change={() => {
+		onchange={() => {
 			let reader = new FileReader();
 			reader.onload = async (event) => {
 				let originalImageUrl = `${event.target.result}`;
@@ -346,7 +350,7 @@
 
 	<button
 		class="flex space-x-1"
-		on:click={() => {
+		onclick={() => {
 			goto('/workspace/models');
 		}}
 	>
@@ -370,9 +374,9 @@
 
 	<form
 		class="flex flex-col max-w-2xl mx-auto mt-4 mb-10"
-		on:submit|preventDefault={() => {
+		onsubmit={preventDefault(() => {
 			submitHandler();
-		}}
+		})}
 	>
 		<div class="flex justify-center my-4">
 			<div class="self-center">
@@ -381,7 +385,7 @@
 						? ''
 						: 'p-4'} rounded-full border border-dashed border-gray-200 flex items-center"
 					type="button"
-					on:click={() => {
+					onclick={() => {
 						filesInputElement.click();
 					}}
 				>
@@ -445,7 +449,7 @@
 					class="px-3 py-1.5 text-sm w-full bg-transparent border dark:border-gray-600 outline-none rounded-lg"
 					placeholder="Select a base model (e.g. llama3, gpt-4o)"
 					bind:value={info.base_model_id}
-					on:change={(e) => {
+					onchange={(e) => {
 						addUsage(e.target.value);
 					}}
 					required
@@ -465,7 +469,7 @@
 				<button
 					class="p-1 text-xs flex rounded transition"
 					type="button"
-					on:click={() => {
+					onclick={() => {
 						if (info.meta.description === null) {
 							info.meta.description = '';
 						} else {
@@ -487,7 +491,7 @@
 					placeholder={$i18n.t('Add a short description about what this model does')}
 					bind:value={info.meta.description}
 					row="3"
-				/>
+				></textarea>
 			{/if}
 		</div>
 
@@ -519,7 +523,7 @@
 					<button
 						class="p-1 px-3 text-xs flex rounded transition"
 						type="button"
-						on:click={() => {
+						onclick={() => {
 							showAdvanced = !showAdvanced;
 						}}
 					>
@@ -555,7 +559,7 @@
 					<button
 						class="p-1 text-xs flex rounded transition"
 						type="button"
-						on:click={() => {
+						onclick={() => {
 							if (info.meta.suggestion_prompts === null) {
 								info.meta.suggestion_prompts = [{ content: '' }];
 							} else {
@@ -575,7 +579,7 @@
 					<button
 						class="p-1 px-2 text-xs flex rounded transition"
 						type="button"
-						on:click={() => {
+						onclick={() => {
 							if (
 								info.meta.suggestion_prompts.length === 0 ||
 								info.meta.suggestion_prompts.at(-1).content !== ''
@@ -612,7 +616,7 @@
 								<button
 									class="px-2"
 									type="button"
-									on:click={() => {
+									onclick={() => {
 										info.meta.suggestion_prompts.splice(promptIdx, 1);
 										info.meta.suggestion_prompts = info.meta.suggestion_prompts;
 									}}
@@ -694,7 +698,7 @@
 				<button
 					class="p-1 px-3 text-xs flex rounded transition"
 					type="button"
-					on:click={() => {
+					onclick={() => {
 						showPreview = !showPreview;
 					}}
 				>
@@ -714,7 +718,7 @@
 						value={JSON.stringify(info, null, 2)}
 						disabled
 						readonly
-					/>
+					></textarea>
 				</div>
 			{/if}
 		</div>

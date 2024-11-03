@@ -1,4 +1,6 @@
 <script>
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import { toast } from 'svelte-sonner';
 
 	import { goto } from '$app/navigation';
@@ -10,17 +12,19 @@
 
 	const i18n = getContext('i18n');
 
-	let loading = false;
+	let loading = $state(false);
 
 	// ///////////
 	// Prompt
 	// ///////////
 
-	let title = '';
-	let command = '';
-	let content = '';
+	let title = $state('');
+	let command = $state('');
+	let content = $state('');
 
-	$: command = title !== '' ? `${title.replace(/\s+/g, '-').toLowerCase()}` : '';
+	run(() => {
+		command = title !== '' ? `${title.replace(/\s+/g, '-').toLowerCase()}` : '';
+	});
 
 	const submitHandler = async () => {
 		loading = true;
@@ -93,7 +97,7 @@
 <div class="w-full max-h-full">
 	<button
 		class="flex space-x-1"
-		on:click={() => {
+		onclick={() => {
 			history.back();
 		}}
 	>
@@ -116,9 +120,9 @@
 
 	<form
 		class="flex flex-col max-w-2xl mx-auto mt-4 mb-10 pb-10"
-		on:submit|preventDefault={() => {
+		onsubmit={preventDefault(() => {
 			submitHandler();
-		}}
+		})}
 	>
 		<div class="my-2">
 			<div class=" text-sm font-semibold mb-2">{$i18n.t('Title')}*</div>

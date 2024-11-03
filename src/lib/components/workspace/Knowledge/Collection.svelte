@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import Fuse from 'fuse.js';
 	import { toast } from 'svelte-sonner';
 	import { v4 as uuidv4 } from 'uuid';
@@ -40,11 +42,11 @@
 	import ChevronLeft from '$lib/components/icons/ChevronLeft.svelte';
 	import MenuLines from '$lib/components/icons/MenuLines.svelte';
 
-	let largeScreen = true;
+	let largeScreen = $state(true);
 
-	let pane;
-	let showSidepanel = true;
-	let minSize = 0;
+	let pane = $state();
+	let showSidepanel = $state(true);
+	let minSize = $state(0);
 
 	type Knowledge = {
 		id: string;
@@ -56,49 +58,26 @@
 		files: any[];
 	};
 
-	let id = null;
-	let knowledge: Knowledge | null = null;
-	let query = '';
+	let id = $state(null);
+	let knowledge: Knowledge | null = $state(null);
+	let query = $state('');
 
-	let showAddTextContentModal = false;
-	let showSyncConfirmModal = false;
+	let showAddTextContentModal = $state(false);
+	let showSyncConfirmModal = $state(false);
 
-	let inputFiles = null;
+	let inputFiles = $state(null);
 
-	let filteredItems = [];
-	$: if (knowledge) {
-		fuse = new Fuse(knowledge.files, {
-			keys: ['meta.name', 'meta.description']
-		});
-	}
+	let filteredItems = $state([]);
 
-	$: if (fuse) {
-		filteredItems = query
-			? fuse.search(query).map((e) => {
-					return e.item;
-				})
-			: (knowledge?.files ?? []);
-	}
 
-	let selectedFile = null;
-	let selectedFileId = null;
+	let selectedFile = $state(null);
+	let selectedFileId = $state(null);
 
-	$: if (selectedFileId) {
-		const file = (knowledge?.files ?? []).find((file) => file.id === selectedFileId);
-		if (file) {
-			file.data = file.data ?? { content: '' };
-			selectedFile = file;
-		} else {
-			selectedFile = null;
-		}
-	} else {
-		selectedFile = null;
-	}
 
-	let fuse = null;
+	let fuse = $state(null);
 	let debounceTimeout = null;
 	let mediaQuery;
-	let dragged = false;
+	let dragged = $state(false);
 
 	const createFileFromText = (name, content) => {
 		const blob = new Blob([content], { type: 'text/plain' });
@@ -529,6 +508,35 @@
 		dropZone?.removeEventListener('drop', onDrop);
 		dropZone?.removeEventListener('dragleave', onDragLeave);
 	});
+	run(() => {
+		if (knowledge) {
+			fuse = new Fuse(knowledge.files, {
+				keys: ['meta.name', 'meta.description']
+			});
+		}
+	});
+	run(() => {
+		if (fuse) {
+			filteredItems = query
+				? fuse.search(query).map((e) => {
+						return e.item;
+					})
+				: (knowledge?.files ?? []);
+		}
+	});
+	run(() => {
+		if (selectedFileId) {
+			const file = (knowledge?.files ?? []).find((file) => file.id === selectedFileId);
+			if (file) {
+				file.data = file.data ?? { content: '' };
+				selectedFile = file;
+			} else {
+				selectedFile = null;
+			}
+		} else {
+			selectedFile = null;
+		}
+	});
 </script>
 
 {#if dragged}
@@ -578,7 +586,7 @@
 	type="file"
 	multiple
 	hidden
-	on:change={async () => {
+	onchange={async () => {
 		if (inputFiles && inputFiles.length > 0) {
 			for (const file of inputFiles) {
 				await uploadFileHandler(file);
@@ -646,7 +654,7 @@
 											class=" w-full text-sm pr-4 py-1 rounded-r-xl outline-none bg-transparent"
 											bind:value={query}
 											placeholder={$i18n.t('Search Collection')}
-											on:focus={() => {
+											onfocus={() => {
 												selectedFileId = null;
 											}}
 										/>
@@ -709,7 +717,7 @@
 											<div class="-translate-x-2">
 												<button
 													class="w-full text-left text-sm p-1.5 rounded-lg dark:text-gray-300 dark:hover:text-white hover:bg-black/5 dark:hover:bg-gray-850"
-													on:click={() => {
+													onclick={() => {
 														pane.expand();
 													}}
 												>
@@ -731,7 +739,7 @@
 										<div>
 											<button
 												class="self-center w-fit text-sm py-1 px-2.5 dark:text-gray-300 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg"
-												on:click={() => {
+												onclick={() => {
 													updateFileContentHandler();
 												}}
 											>
@@ -763,7 +771,7 @@
 															type="text"
 															class="text-center w-full font-medium text-3xl font-primary bg-transparent outline-none"
 															bind:value={knowledge.name}
-															on:input={() => {
+															oninput={() => {
 																changeDebounceHandler();
 															}}
 														/>
@@ -775,7 +783,7 @@
 														type="text"
 														class="text-center w-full text-gray-500 bg-transparent outline-none"
 														bind:value={knowledge.description}
-														on:input={() => {
+														oninput={() => {
 															changeDebounceHandler();
 														}}
 													/>
@@ -805,7 +813,7 @@
 									<div class="mr-2">
 										<button
 											class="w-full text-left text-sm p-1.5 rounded-lg dark:text-gray-300 dark:hover:text-white hover:bg-black/5 dark:hover:bg-gray-850"
-											on:click={() => {
+											onclick={() => {
 												selectedFileId = null;
 											}}
 										>
@@ -819,7 +827,7 @@
 									<div>
 										<button
 											class="self-center w-fit text-sm py-1 px-2.5 dark:text-gray-300 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 rounded-lg"
-											on:click={() => {
+											onclick={() => {
 												updateFileContentHandler();
 											}}
 										>

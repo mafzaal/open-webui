@@ -1,4 +1,6 @@
 <script>
+	import { preventDefault } from 'svelte/legacy';
+
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	const i18n = getContext('i18n');
@@ -7,10 +9,10 @@
 	import { toast } from 'svelte-sonner';
 	import { knowledge } from '$lib/stores';
 
-	let loading = false;
+	let loading = $state(false);
 
-	let name = '';
-	let description = '';
+	let name = $state('');
+	let description = $state('');
 
 	const submitHandler = async () => {
 		loading = true;
@@ -40,7 +42,7 @@
 <div class="w-full max-h-full">
 	<button
 		class="flex space-x-1"
-		on:click={() => {
+		onclick={() => {
 			goto('/workspace/knowledge');
 		}}
 	>
@@ -63,9 +65,9 @@
 
 	<form
 		class="flex flex-col max-w-lg mx-auto mt-10 mb-10"
-		on:submit|preventDefault={() => {
+		onsubmit={preventDefault(() => {
 			submitHandler();
-		}}
+		})}
 	>
 		<div class=" w-full flex flex-col justify-center">
 			<div class=" text-2xl font-medium font-primary mb-2.5">Create a knowledge base</div>
@@ -95,7 +97,7 @@
 							bind:value={description}
 							placeholder={`Describe your knowledge base and objectives`}
 							required
-						/>
+						></textarea>
 					</div>
 				</div>
 			</div>

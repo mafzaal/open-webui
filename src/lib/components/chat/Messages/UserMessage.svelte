@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import dayjs from 'dayjs';
 	import { toast } from 'svelte-sonner';
 	import { tick, createEventDispatcher, getContext, onMount } from 'svelte';
@@ -20,31 +22,47 @@
 	const i18n = getContext('i18n');
 
 	const dispatch = createEventDispatcher();
-	export let user;
 
-	export let history;
-	export let messageId;
 
-	export let siblings;
 
-	export let showPreviousMessage: Function;
-	export let showNextMessage: Function;
 
-	export let editMessage: Function;
 
-	export let isFirstMessage: boolean;
-	export let readOnly: boolean;
-
-	let edit = false;
-	let editedContent = '';
-	let messageEditTextAreaElement: HTMLTextAreaElement;
-
-	let message = JSON.parse(JSON.stringify(history.messages[messageId]));
-	$: if (history.messages) {
-		if (JSON.stringify(message) !== JSON.stringify(history.messages[messageId])) {
-			message = JSON.parse(JSON.stringify(history.messages[messageId]));
-		}
+	interface Props {
+		user: any;
+		history: any;
+		messageId: any;
+		siblings: any;
+		showPreviousMessage: Function;
+		showNextMessage: Function;
+		editMessage: Function;
+		isFirstMessage: boolean;
+		readOnly: boolean;
 	}
+
+	let {
+		user,
+		history,
+		messageId,
+		siblings,
+		showPreviousMessage,
+		showNextMessage,
+		editMessage,
+		isFirstMessage,
+		readOnly
+	}: Props = $props();
+
+	let edit = $state(false);
+	let editedContent = $state('');
+	let messageEditTextAreaElement: HTMLTextAreaElement = $state();
+
+	let message = $state(JSON.parse(JSON.stringify(history.messages[messageId])));
+	run(() => {
+		if (history.messages) {
+			if (JSON.stringify(message) !== JSON.stringify(history.messages[messageId])) {
+				message = JSON.parse(JSON.stringify(history.messages[messageId]));
+			}
+		}
+	});
 
 	const copyToClipboard = async (text) => {
 		const res = await _copyToClipboard(text);
@@ -148,11 +166,11 @@
 							bind:this={messageEditTextAreaElement}
 							class=" bg-transparent outline-none w-full resize-none"
 							bind:value={editedContent}
-							on:input={(e) => {
+							oninput={(e) => {
 								e.target.style.height = '';
 								e.target.style.height = `${e.target.scrollHeight}px`;
 							}}
-							on:keydown={(e) => {
+							onkeydown={(e) => {
 								if (e.key === 'Escape') {
 									document.getElementById('close-edit-message-button')?.click();
 								}
@@ -164,7 +182,7 @@
 									document.getElementById('confirm-edit-message-button')?.click();
 								}
 							}}
-						/>
+						></textarea>
 					</div>
 
 					<div class=" mt-2 mb-1 flex justify-between text-sm font-medium">
@@ -172,7 +190,7 @@
 							<button
 								id="save-edit-message-button"
 								class=" px-4 py-2 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 border dark:border-gray-700 text-gray-700 dark:text-gray-200 transition rounded-3xl"
-								on:click={() => {
+								onclick={() => {
 									editMessageConfirmHandler(false);
 								}}
 							>
@@ -184,7 +202,7 @@
 							<button
 								id="close-edit-message-button"
 								class="px-4 py-2 bg-white dark:bg-gray-900 hover:bg-gray-100 text-gray-800 dark:text-gray-100 transition rounded-3xl"
-								on:click={() => {
+								onclick={() => {
 									cancelEditMessage();
 								}}
 							>
@@ -194,7 +212,7 @@
 							<button
 								id="confirm-edit-message-button"
 								class=" px-4 py-2 bg-gray-900 dark:bg-white hover:bg-gray-850 text-gray-100 dark:text-gray-800 transition rounded-3xl"
-								on:click={() => {
+								onclick={() => {
 									editMessageConfirmHandler();
 								}}
 							>
@@ -229,7 +247,7 @@
 								<div class="flex self-center" dir="ltr">
 									<button
 										class="self-center p-1 hover:bg-black/5 dark:hover:bg-white/5 dark:hover:text-white hover:text-black rounded-md transition"
-										on:click={() => {
+										onclick={() => {
 											showPreviousMessage(message);
 										}}
 									>
@@ -255,7 +273,7 @@
 
 									<button
 										class="self-center p-1 hover:bg-black/5 dark:hover:bg-white/5 dark:hover:text-white hover:text-black rounded-md transition"
-										on:click={() => {
+										onclick={() => {
 											showNextMessage(message);
 										}}
 									>
@@ -281,7 +299,7 @@
 							<Tooltip content={$i18n.t('Edit')} placement="bottom">
 								<button
 									class="invisible group-hover:visible p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition edit-user-message-button"
-									on:click={() => {
+									onclick={() => {
 										editMessageHandler();
 									}}
 								>
@@ -306,7 +324,7 @@
 						<Tooltip content={$i18n.t('Copy')} placement="bottom">
 							<button
 								class="invisible group-hover:visible p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition"
-								on:click={() => {
+								onclick={() => {
 									copyToClipboard(message.content);
 								}}
 							>
@@ -331,7 +349,7 @@
 							<Tooltip content={$i18n.t('Delete')} placement="bottom">
 								<button
 									class="invisible group-hover:visible p-1 rounded dark:hover:text-white hover:text-black transition"
-									on:click={() => {
+									onclick={() => {
 										deleteMessageHandler();
 									}}
 								>
@@ -358,7 +376,7 @@
 								<div class="flex self-center" dir="ltr">
 									<button
 										class="self-center p-1 hover:bg-black/5 dark:hover:bg-white/5 dark:hover:text-white hover:text-black rounded-md transition"
-										on:click={() => {
+										onclick={() => {
 											showPreviousMessage(message);
 										}}
 									>
@@ -384,7 +402,7 @@
 
 									<button
 										class="self-center p-1 hover:bg-black/5 dark:hover:bg-white/5 dark:hover:text-white hover:text-black rounded-md transition"
-										on:click={() => {
+										onclick={() => {
 											showNextMessage(message);
 										}}
 									>

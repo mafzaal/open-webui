@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { v4 as uuidv4 } from 'uuid';
 	import { chats, config, settings, user as _user, mobile, currentChatPage } from '$lib/stores';
 	import { tick, getContext, onMount, createEventDispatcher } from 'svelte';
@@ -16,29 +18,48 @@
 
 	const i18n = getContext('i18n');
 
-	export let chatId = '';
-	export let user = $_user;
 
-	export let prompt;
-	export let history = {};
-	export let selectedModels;
 
-	let messages = [];
+	let messages = $state([]);
 
-	export let sendPrompt: Function;
-	export let continueResponse: Function;
-	export let regenerateResponse: Function;
-	export let mergeResponses: Function;
-	export let chatActionHandler: Function;
-	export let showMessage: Function = () => {};
 
-	export let readOnly = false;
 
-	export let bottomPadding = false;
-	export let autoScroll;
+	interface Props {
+		chatId?: string;
+		user?: any;
+		prompt: any;
+		history?: any;
+		selectedModels: any;
+		sendPrompt: Function;
+		continueResponse: Function;
+		regenerateResponse: Function;
+		mergeResponses: Function;
+		chatActionHandler: Function;
+		showMessage?: Function;
+		readOnly?: boolean;
+		bottomPadding?: boolean;
+		autoScroll: any;
+	}
 
-	let messagesCount = 20;
-	let messagesLoading = false;
+	let {
+		chatId = '',
+		user = $_user,
+		prompt = $bindable(),
+		history = $bindable({}),
+		selectedModels,
+		sendPrompt,
+		continueResponse,
+		regenerateResponse,
+		mergeResponses,
+		chatActionHandler,
+		showMessage = () => {},
+		readOnly = false,
+		bottomPadding = false,
+		autoScroll = $bindable()
+	}: Props = $props();
+
+	let messagesCount = $state(20);
+	let messagesLoading = $state(false);
 
 	const loadMoreMessages = async () => {
 		// scroll slightly down to disable continuous loading
@@ -53,26 +74,7 @@
 		messagesLoading = false;
 	};
 
-	$: if (history.currentId) {
-		let _messages = [];
 
-		let message = history.messages[history.currentId];
-		while (message && _messages.length <= messagesCount) {
-			_messages.unshift({ ...message });
-			message = message.parentId !== null ? history.messages[message.parentId] : null;
-		}
-
-		messages = _messages;
-	} else {
-		messages = [];
-	}
-
-	$: if (autoScroll && bottomPadding) {
-		(async () => {
-			await tick();
-			scrollToBottom();
-		})();
-	}
 
 	const scrollToBottom = () => {
 		const element = document.getElementById('messages-container');
@@ -308,6 +310,29 @@
 		// Update the chat
 		await updateChatHistory();
 	};
+	run(() => {
+		if (history.currentId) {
+			let _messages = [];
+
+			let message = history.messages[history.currentId];
+			while (message && _messages.length <= messagesCount) {
+				_messages.unshift({ ...message });
+				message = message.parentId !== null ? history.messages[message.parentId] : null;
+			}
+
+			messages = _messages;
+		} else {
+			messages = [];
+		}
+	});
+	run(() => {
+		if (autoScroll && bottomPadding) {
+			(async () => {
+				await tick();
+				scrollToBottom();
+			})();
+		}
+	});
 </script>
 
 <div class="h-full flex pt-8">
@@ -406,9 +431,9 @@
 						/>
 					{/each}
 				</div>
-				<div class="pb-12" />
+				<div class="pb-12"></div>
 				{#if bottomPadding}
-					<div class="  pb-6" />
+					<div class="  pb-6"></div>
 				{/if}
 			{/key}
 		</div>

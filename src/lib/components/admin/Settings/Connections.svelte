@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { models, user } from '$lib/stores';
 	import { createEventDispatcher, onMount, getContext, tick } from 'svelte';
 
@@ -35,15 +37,15 @@
 	};
 
 	// External
-	let OLLAMA_BASE_URLS = [''];
+	let OLLAMA_BASE_URLS = $state(['']);
 
-	let OPENAI_API_KEYS = [''];
-	let OPENAI_API_BASE_URLS = [''];
+	let OPENAI_API_KEYS = $state(['']);
+	let OPENAI_API_BASE_URLS = $state(['']);
 
-	let pipelineUrls = {};
+	let pipelineUrls = $state({});
 
-	let ENABLE_OPENAI_API = null;
-	let ENABLE_OLLAMA_API = null;
+	let ENABLE_OPENAI_API = $state(null);
+	let ENABLE_OLLAMA_API = $state(null);
 
 	const verifyOpenAIHandler = async (idx) => {
 		OPENAI_API_BASE_URLS = OPENAI_API_BASE_URLS.map((url) => url.replace(/\/$/, ''));
@@ -170,12 +172,12 @@
 
 <form
 	class="flex flex-col h-full justify-between text-sm"
-	on:submit|preventDefault={() => {
+	onsubmit={preventDefault(() => {
 		updateOpenAIHandler();
 		updateOllamaUrlsHandler();
 
 		dispatch('save');
-	}}
+	})}
 >
 	<div class="space-y-3 overflow-y-scroll scrollbar-hidden h-full">
 		{#if ENABLE_OPENAI_API !== null && ENABLE_OLLAMA_API !== null}
@@ -204,7 +206,7 @@
 												? 'pr-8'
 												: ''} text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-none"
 											placeholder={$i18n.t('API Base URL')}
-											bind:value={url}
+											bind:value={url[idx]}
 											autocomplete="off"
 										/>
 
@@ -240,7 +242,7 @@
 										{#if idx === 0}
 											<button
 												class="px-1"
-												on:click={() => {
+												onclick={() => {
 													OPENAI_API_BASE_URLS = [...OPENAI_API_BASE_URLS, ''];
 													OPENAI_API_KEYS = [...OPENAI_API_KEYS, ''];
 												}}
@@ -260,7 +262,7 @@
 										{:else}
 											<button
 												class="px-1"
-												on:click={() => {
+												onclick={() => {
 													OPENAI_API_BASE_URLS = OPENAI_API_BASE_URLS.filter(
 														(url, urlIdx) => idx !== urlIdx
 													);
@@ -284,7 +286,7 @@
 										<Tooltip content="Verify connection" className="self-start mt-0.5">
 											<button
 												class="self-center p-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-900 dark:hover:bg-gray-850 rounded-lg transition"
-												on:click={() => {
+												onclick={() => {
 													verifyOpenAIHandler(idx);
 												}}
 												type="button"
@@ -342,14 +344,14 @@
 									<input
 										class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-none"
 										placeholder={$i18n.t('Enter URL (e.g. http://localhost:11434)')}
-										bind:value={url}
+										bind:value={url[idx]}
 									/>
 
 									<div class="self-center flex items-center">
 										{#if idx === 0}
 											<button
 												class="px-1"
-												on:click={() => {
+												onclick={() => {
 													OLLAMA_BASE_URLS = [...OLLAMA_BASE_URLS, ''];
 												}}
 												type="button"
@@ -368,7 +370,7 @@
 										{:else}
 											<button
 												class="px-1"
-												on:click={() => {
+												onclick={() => {
 													OLLAMA_BASE_URLS = OLLAMA_BASE_URLS.filter(
 														(url, urlIdx) => idx !== urlIdx
 													);
@@ -391,7 +393,7 @@
 										<Tooltip content="Verify connection" className="self-start mt-0.5">
 											<button
 												class="self-center p-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-900 dark:hover:bg-gray-850 rounded-lg transition"
-												on:click={() => {
+												onclick={() => {
 													verifyOllamaHandler(idx);
 												}}
 												type="button"

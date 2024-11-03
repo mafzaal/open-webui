@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { DropdownMenu } from 'bits-ui';
 	import { marked } from 'marked';
 	import Fuse from 'fuse.js';
@@ -25,34 +27,52 @@
 	const i18n = getContext('i18n');
 	const dispatch = createEventDispatcher();
 
-	export let id = '';
-	export let value = '';
-	export let placeholder = 'Select a model';
-	export let searchEnabled = true;
-	export let searchPlaceholder = $i18n.t('Search a model');
 
-	export let showTemporaryChatControl = false;
 
-	export let items: {
+
+	interface Props {
+		id?: string;
+		value?: string;
+		placeholder?: string;
+		searchEnabled?: boolean;
+		searchPlaceholder?: any;
+		showTemporaryChatControl?: boolean;
+		items?: {
 		label: string;
 		value: string;
 		model: Model;
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		[key: string]: any;
-	}[] = [];
+	}[];
+		className?: string;
+		triggerClassName?: string;
+		children?: import('svelte').Snippet;
+	}
 
-	export let className = 'w-[32rem]';
-	export let triggerClassName = 'text-lg';
+	let {
+		id = '',
+		value = $bindable(''),
+		placeholder = 'Select a model',
+		searchEnabled = true,
+		searchPlaceholder = $i18n.t('Search a model'),
+		showTemporaryChatControl = false,
+		items = [],
+		className = 'w-[32rem]',
+		triggerClassName = 'text-lg',
+		children
+	}: Props = $props();
 
-	let show = false;
+	let show = $state(false);
 
-	let selectedModel = '';
-	$: selectedModel = items.find((item) => item.value === value) ?? '';
+	let selectedModel = $state('');
+	run(() => {
+		selectedModel = items.find((item) => item.value === value) ?? '';
+	});
 
-	let searchValue = '';
-	let ollamaVersion = null;
+	let searchValue = $state('');
+	let ollamaVersion = $state(null);
 
-	let selectedModelIdx = 0;
+	let selectedModelIdx = $state(0);
 
 	const fuse = new Fuse(
 		items
@@ -72,11 +92,11 @@
 		}
 	);
 
-	$: filteredItems = searchValue
+	let filteredItems = $derived(searchValue
 		? fuse.search(searchValue).map((e) => {
 				return e.item;
 			})
-		: items.filter((item) => !item.model?.info?.meta?.hidden);
+		: items.filter((item) => !item.model?.info?.meta?.hidden));
 
 	const pullModelHandler = async () => {
 		const sanitizedModelTag = searchValue.trim().replace(/^ollama\s+(run|pull)\s+/, '');
@@ -256,7 +276,7 @@
 		side={$mobile ? 'bottom' : 'bottom-start'}
 		sideOffset={3}
 	>
-		<slot>
+		{#if children}{@render children()}{:else}
 			{#if searchEnabled}
 				<div class="flex items-center gap-2.5 px-5 mt-3.5 mb-3">
 					<Search className="size-4" strokeWidth="2.5" />
@@ -267,7 +287,7 @@
 						class="w-full text-sm bg-transparent outline-none"
 						placeholder={searchPlaceholder}
 						autocomplete="off"
-						on:keydown={(e) => {
+						onkeydown={(e) => {
 							if (e.code === 'Enter' && filteredItems.length > 0) {
 								value = filteredItems[selectedModelIdx].value;
 								show = false;
@@ -299,7 +319,7 @@
 							? 'bg-gray-100 dark:bg-gray-800 group-hover:bg-transparent'
 							: ''}"
 						data-arrow-selected={index === selectedModelIdx}
-						on:click={() => {
+						onclick={() => {
 							value = item.value;
 							selectedModelIdx = index;
 
@@ -440,7 +460,7 @@
 				{#if !(searchValue.trim() in $MODEL_DOWNLOAD_POOL) && searchValue && ollamaVersion && $user.role === 'admin'}
 					<button
 						class="flex w-full font-medium line-clamp-1 select-none items-center rounded-button py-2 pl-3 pr-1.5 text-sm text-gray-700 dark:text-gray-100 outline-none transition-all duration-75 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer data-[highlighted]:bg-muted"
-						on:click={() => {
+						onclick={() => {
 							pullModelHandler();
 						}}
 					>
@@ -504,7 +524,7 @@
 							<Tooltip content={$i18n.t('Cancel')}>
 								<button
 									class="text-gray-800 dark:text-gray-100"
-									on:click={() => {
+									onclick={() => {
 										cancelModelPullHandler(model);
 									}}
 								>
@@ -538,7 +558,7 @@
 				<div class="flex items-center mx-2 my-2">
 					<button
 						class="flex justify-between w-full font-medium line-clamp-1 select-none items-center rounded-button py-2 px-3 text-sm text-gray-700 dark:text-gray-100 outline-none transition-all duration-75 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer data-[highlighted]:bg-muted"
-						on:click={async () => {
+						onclick={async () => {
 							temporaryChatEnabled.set(!$temporaryChatEnabled);
 							await goto('/');
 							const newChatButton = document.getElementById('new-chat-button');
@@ -569,9 +589,9 @@
 				</div>
 			{/if}
 
-			<div class="hidden w-[42rem]" />
-			<div class="hidden w-[32rem]" />
-		</slot>
+			<div class="hidden w-[42rem]"></div>
+			<div class="hidden w-[32rem]"></div>
+		{/if}
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
 

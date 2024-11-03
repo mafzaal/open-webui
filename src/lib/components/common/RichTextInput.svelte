@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { onDestroy, onMount } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
 	const eventDispatch = createEventDispatcher();
@@ -24,24 +26,35 @@
 	import { baseKeymap, chainCommands } from 'prosemirror-commands';
 	import { DOMParser, DOMSerializer, Schema, Fragment } from 'prosemirror-model';
 
-	export let className = 'input-prose';
-	export let shiftEnter = false;
 
-	export let id = '';
-	export let value = '';
-	export let placeholder = 'Type here...';
-	export let trim = false;
+	interface Props {
+		className?: string;
+		shiftEnter?: boolean;
+		id?: string;
+		value?: string;
+		placeholder?: string;
+		trim?: boolean;
+	}
 
-	let element: HTMLElement; // Element where ProseMirror will attach
+	let {
+		className = 'input-prose',
+		shiftEnter = false,
+		id = '',
+		value = $bindable(''),
+		placeholder = 'Type here...',
+		trim = false
+	}: Props = $props();
+
+	let element: HTMLElement;// = $state(undefined); // Element where ProseMirror will attach
 	let state;
-	let view;
+	let view ;//= $state(undefined);
 
 	// Plugin to add placeholder when the content is empty
 	function placeholderPlugin(placeholder: string) {
 		return new Plugin({
 			props: {
-				decorations(state) {
-					const doc = state.doc;
+				decorations(plug_state) {
+					const doc = plug_state.doc;
 					if (
 						doc.childCount === 1 &&
 						doc.firstChild.isTextblock &&
@@ -219,15 +232,15 @@
 	}
 
 	function isInList(state) {
-		const { $from } = state.selection;
+		const  from  = state.selection.$from;
 		return (
-			$from.parent.type === schema.nodes.paragraph && $from.node(-1).type === schema.nodes.list_item
+			from.parent.type === schema.nodes.paragraph && from.node(-1).type === schema.nodes.list_item
 		);
 	}
 
 	function isEmptyListItem(state) {
-		const { $from } = state.selection;
-		return isInList(state) && $from.parent.content.size === 0 && $from.node(-1).childCount === 1;
+		const from  = state.selection.$from;
+		return isInList(state) && from.parent.content.size === 0 && from.node(-1).childCount === 1;
 	}
 
 	function exitList(state, dispatch) {
@@ -363,7 +376,7 @@
 
 					// Prevent default tab navigation and provide indent/outdent behavior inside lists:
 					Tab: chainCommands((state, dispatch, view) => {
-						const { $from } = state.selection;
+						// const from = state.selection.$from;
 						if (isInList(state)) {
 							return sinkListItem(schema.nodes.list_item)(state, dispatch);
 						} else {
@@ -372,7 +385,7 @@
 						return true; // Prevent Tab from moving the focus
 					}),
 					'Shift-Tab': (state, dispatch, view) => {
-						const { $from } = state.selection;
+						// const { $from } = state.selection;
 						if (isInList(state)) {
 							return liftListItem(schema.nodes.list_item)(state, dispatch);
 						}
@@ -465,29 +478,31 @@
 	});
 
 	// Reinitialize the editor if the value is externally changed (i.e. when `value` is updated)
-	$: if (view && value !== serializeEditorContent(view.state.doc)) {
-		const newDoc = markdownToProseMirrorDoc(value || '');
+	run(() => {
+		if (view && value !== serializeEditorContent(view.state.doc)) {
+			const newDoc = markdownToProseMirrorDoc(value || '');
 
-		const newState = EditorState.create({
-			doc: newDoc,
-			schema,
-			plugins: view.state.plugins,
-			selection: TextSelection.atEnd(newDoc) // This sets the cursor at the end
-		});
-		view.updateState(newState);
+			const newState = EditorState.create({
+				doc: newDoc,
+				schema,
+				plugins: view.state.plugins,
+				selection: TextSelection.atEnd(newDoc) // This sets the cursor at the end
+			});
+			view.updateState(newState);
 
-		if (value !== '') {
-			// After updating the state, try to find and select the next template
-			setTimeout(() => {
-				const templateFound = selectNextTemplate(view.state, view.dispatch);
-				if (!templateFound) {
-					// If no template found, set cursor at the end
-					const endPos = view.state.doc.content.size;
-					view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, endPos)));
-				}
-			}, 0);
+			if (value !== '') {
+				// After updating the state, try to find and select the next template
+				setTimeout(() => {
+					const templateFound = selectNextTemplate(view.state, view.dispatch);
+					if (!templateFound) {
+						// If no template found, set cursor at the end
+						const endPos = view.state.doc.content.size;
+						view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, endPos)));
+					}
+				}, 0);
+			}
 		}
-	}
+	});
 
 	// Destroy ProseMirror instance on unmount
 	onDestroy(() => {

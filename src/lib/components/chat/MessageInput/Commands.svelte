@@ -1,4 +1,6 @@
-<script>
+<script  lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { createEventDispatcher } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -11,10 +13,14 @@
 	import { removeLastWordFromString } from '$lib/utils';
 	import { processWeb, processYoutubeVideo } from '$lib/apis/retrieval';
 
-	export let prompt = '';
-	export let files = [];
+	interface Props {
+		prompt?: string;
+		files?: any;
+	}
 
-	let commandElement = null;
+	let { prompt = $bindable(''), files = $bindable([]) }: Props = $props();
+
+	let commandElement = $state(null);
 
 	export const selectUp = () => {
 		commandElement?.selectUp();
@@ -24,8 +30,10 @@
 		commandElement?.selectDown();
 	};
 
-	let command = '';
-	$: command = prompt?.split('\n').pop()?.split(' ')?.pop() ?? '';
+	let command = $state('');
+	run(() => {
+		command = prompt?.split('\n').pop()?.split(' ')?.pop() ?? '';
+	});
 </script>
 
 {#if ['/', '#', '@'].includes(command?.charAt(0)) || '\\#' === command.slice(0, 2)}

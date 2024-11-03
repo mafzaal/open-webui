@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import fileSaver from 'file-saver';
 	const { saveAs } = fileSaver;
 
@@ -33,19 +35,19 @@
 
 	const i18n = getContext('i18n');
 
-	let rankedModels = [];
-	let feedbacks = [];
+	let rankedModels = $state([]);
+	let feedbacks = $state([]);
 
-	let query = '';
-	let page = 1;
+	let query = $state('');
+	let page = $state(1);
 
 	let tagEmbeddings = new Map();
 
-	let loaded = false;
-	let loadingLeaderboard = true;
+	let loaded = $state(false);
+	let loadingLeaderboard = $state(true);
 	let debounceTimer;
 
-	$: paginatedFeedbacks = feedbacks.slice((page - 1) * 10, page * 10);
+	let paginatedFeedbacks = $derived(feedbacks.slice((page - 1) * 10, page * 10));
 
 	type Feedback = {
 		id: string;
@@ -280,7 +282,9 @@
 		}, 1500); // Debounce for 1.5 seconds
 	};
 
-	$: query, debouncedQueryHandler();
+	run(() => {
+		query, debouncedQueryHandler();
+	});
 
 	//////////////////////
 	//
@@ -354,7 +358,7 @@
 				{$i18n.t('Leaderboard')}
 			</div>
 
-			<div class="flex self-center w-[1px] h-6 mx-2.5 bg-gray-50 dark:bg-gray-850" />
+			<div class="flex self-center w-[1px] h-6 mx-2.5 bg-gray-50 dark:bg-gray-850"></div>
 
 			<span class="text-lg font-medium text-gray-500 dark:text-gray-300 mr-1.5"
 				>{rankedModels.length}</span
@@ -371,7 +375,7 @@
 						class=" w-full text-sm pr-4 py-1 rounded-r-xl outline-none bg-transparent"
 						bind:value={query}
 						placeholder={$i18n.t('Search')}
-						on:focus={() => {
+						onfocus={() => {
 							loadEmbeddingModel();
 						}}
 					/>
@@ -499,7 +503,7 @@
 		<div class="flex md:self-center text-lg font-medium px-0.5">
 			{$i18n.t('Feedback History')}
 
-			<div class="flex self-center w-[1px] h-6 mx-2.5 bg-gray-50 dark:bg-gray-850" />
+			<div class="flex self-center w-[1px] h-6 mx-2.5 bg-gray-50 dark:bg-gray-850"></div>
 
 			<span class="text-lg font-medium text-gray-500 dark:text-gray-300">{feedbacks.length}</span>
 		</div>
@@ -509,7 +513,7 @@
 				<Tooltip content={$i18n.t('Export')}>
 					<button
 						class=" p-2 rounded-xl hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-850 transition font-medium text-sm flex items-center space-x-1"
-						on:click={() => {
+						onclick={() => {
 							exportHandler();
 						}}
 					>
@@ -652,7 +656,7 @@
 				>
 					<button
 						class="flex text-xs items-center px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-200 transition"
-						on:click={async () => {
+						onclick={async () => {
 							shareHandler();
 						}}
 					>

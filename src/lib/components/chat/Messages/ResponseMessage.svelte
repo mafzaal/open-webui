@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { toast } from 'svelte-sonner';
 	import dayjs from 'dayjs';
 
@@ -96,46 +98,57 @@
 		annotation?: { type: string; rating: number };
 	}
 
-	export let chatId = '';
-	export let history;
-	export let messageId;
 
-	let message: MessageType = JSON.parse(JSON.stringify(history.messages[messageId]));
-	$: if (history.messages) {
-		if (JSON.stringify(message) !== JSON.stringify(history.messages[messageId])) {
-			message = JSON.parse(JSON.stringify(history.messages[messageId]));
-		}
+	let message: MessageType = $state({})//$state(JSON.parse(JSON.stringify(history.messages[messageId])));
+
+
+
+
+
+	interface Props {
+		chatId?: string;
+		history: any;
+		messageId: any;
+		siblings: any;
+		showPreviousMessage: Function;
+		showNextMessage: Function;
+		editMessage: Function;
+		rateMessage: Function;
+		continueResponse: Function;
+		regenerateResponse: Function;
+		isLastMessage?: boolean;
+		readOnly?: boolean;
 	}
 
-	export let siblings;
+	let {
+		chatId = '',
+		history = $bindable(),
+		messageId,
+		siblings,
+		showPreviousMessage,
+		showNextMessage,
+		editMessage,
+		rateMessage,
+		continueResponse,
+		regenerateResponse,
+		isLastMessage = true,
+		readOnly = false
+	}: Props = $props();
 
-	export let showPreviousMessage: Function;
-	export let showNextMessage: Function;
+	let model = $state(null);
 
-	export let editMessage: Function;
-	export let rateMessage: Function;
-
-	export let continueResponse: Function;
-	export let regenerateResponse: Function;
-
-	export let isLastMessage = true;
-	export let readOnly = false;
-
-	let model = null;
-	$: model = $models.find((m) => m.id === message.model);
-
-	let edit = false;
-	let editedContent = '';
-	let editTextAreaElement: HTMLTextAreaElement;
+	let edit = $state(false);
+	let editedContent = $state('');
+	let editTextAreaElement: HTMLTextAreaElement = $state();
 
 	let audioParts: Record<number, HTMLAudioElement | null> = {};
-	let speaking = false;
+	let speaking = $state(false);
 	let speakingIdx: number | undefined;
 
-	let loadingSpeech = false;
-	let generatingImage = false;
+	let loadingSpeech = $state(false);
+	let generatingImage = $state(false);
 
-	let showRateComment = false;
+	let showRateComment = $state(false);
 
 	const copyToClipboard = async (text) => {
 		const res = await _copyToClipboard(text);
@@ -335,7 +348,7 @@
 		generatingImage = false;
 	};
 
-	let feedbackLoading = false;
+	let feedbackLoading = $state(false);
 
 	const feedbackHandler = async (
 		rating: number | null = null,
@@ -458,16 +471,28 @@
 		feedbackLoading = false;
 	};
 
-	$: if (!edit) {
-		(async () => {
-			await tick();
-		})();
-	}
 
 	onMount(async () => {
 		console.log('ResponseMessage mounted');
 
 		await tick();
+	});
+	run(() => {
+		if (history.messages) {
+			if (JSON.stringify(message) !== JSON.stringify(history.messages[messageId])) {
+				message = JSON.parse(JSON.stringify(history.messages[messageId]));
+			}
+		}
+	});
+	run(() => {
+		model = $models.find((m) => m.id === message.model);
+	});
+	run(() => {
+		if (!edit) {
+			(async () => {
+				await tick();
+			})();
+		}
 	});
 </script>
 
@@ -554,11 +579,11 @@
 									bind:this={editTextAreaElement}
 									class=" bg-transparent outline-none w-full resize-none"
 									bind:value={editedContent}
-									on:input={(e) => {
+									oninput={(e) => {
 										e.target.style.height = '';
 										e.target.style.height = `${e.target.scrollHeight}px`;
 									}}
-									on:keydown={(e) => {
+									onkeydown={(e) => {
 										if (e.key === 'Escape') {
 											document.getElementById('close-edit-message-button')?.click();
 										}
@@ -570,14 +595,14 @@
 											document.getElementById('confirm-edit-message-button')?.click();
 										}
 									}}
-								/>
+								></textarea>
 
 								<div class=" mt-2 mb-1 flex justify-between text-sm font-medium">
 									<div>
 										<button
 											id="save-new-message-button"
 											class=" px-4 py-2 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 border dark:border-gray-700 text-gray-700 dark:text-gray-200 transition rounded-3xl"
-											on:click={() => {
+											onclick={() => {
 												saveAsCopyHandler();
 											}}
 										>
@@ -589,7 +614,7 @@
 										<button
 											id="close-edit-message-button"
 											class="px-4 py-2 bg-white dark:bg-gray-900 hover:bg-gray-100 text-gray-800 dark:text-gray-100 transition rounded-3xl"
-											on:click={() => {
+											onclick={() => {
 												cancelEditMessage();
 											}}
 										>
@@ -599,7 +624,7 @@
 										<button
 											id="confirm-edit-message-button"
 											class=" px-4 py-2 bg-gray-900 dark:bg-white hover:bg-gray-850 text-gray-100 dark:text-gray-800 transition rounded-3xl"
-											on:click={() => {
+											onclick={() => {
 												editMessageConfirmHandler();
 											}}
 										>
@@ -674,7 +699,7 @@
 								<div class="flex self-center min-w-fit" dir="ltr">
 									<button
 										class="self-center p-1 hover:bg-black/5 dark:hover:bg-white/5 dark:hover:text-white hover:text-black rounded-md transition"
-										on:click={() => {
+										onclick={() => {
 											showPreviousMessage(message);
 										}}
 									>
@@ -702,7 +727,7 @@
 
 									<button
 										class="self-center p-1 hover:bg-black/5 dark:hover:bg-white/5 dark:hover:text-white hover:text-black rounded-md transition"
-										on:click={() => {
+										onclick={() => {
 											showNextMessage(message);
 										}}
 									>
@@ -732,7 +757,7 @@
 												class="{isLastMessage
 													? 'visible'
 													: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition"
-												on:click={() => {
+												onclick={() => {
 													editMessageHandler();
 												}}
 											>
@@ -760,7 +785,7 @@
 										class="{isLastMessage
 											? 'visible'
 											: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition copy-response-button"
-										on:click={() => {
+										onclick={() => {
 											copyToClipboard(message.content);
 										}}
 									>
@@ -787,7 +812,7 @@
 										class="{isLastMessage
 											? 'visible'
 											: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition"
-										on:click={() => {
+										onclick={() => {
 											if (!loadingSpeech) {
 												toggleSpeakMessage();
 											}
@@ -865,7 +890,7 @@
 											class="{isLastMessage
 												? 'visible'
 												: 'invisible group-hover:visible'}  p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition"
-											on:click={() => {
+											onclick={() => {
 												if (!generatingImage) {
 													generateImage(message);
 												}
@@ -978,7 +1003,7 @@
 												class=" {isLastMessage
 													? 'visible'
 													: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition whitespace-pre-wrap"
-												on:click={() => {
+												onclick={() => {
 													console.log(message);
 												}}
 												id="info-{message.id}"
@@ -1014,7 +1039,7 @@
 													? 'bg-gray-100 dark:bg-gray-800'
 													: ''} dark:hover:text-white hover:text-black transition disabled:cursor-progress disabled:hover:bg-transparent"
 												disabled={feedbackLoading}
-												on:click={async () => {
+												onclick={async () => {
 													await feedbackHandler(1);
 
 													(model?.actions ?? [])
@@ -1065,7 +1090,7 @@
 													? 'bg-gray-100 dark:bg-gray-800'
 													: ''} dark:hover:text-white hover:text-black transition disabled:cursor-progress disabled:hover:bg-transparent"
 												disabled={feedbackLoading}
-												on:click={async () => {
+												onclick={async () => {
 													await feedbackHandler(-1);
 
 													(model?.actions ?? [])
@@ -1115,7 +1140,7 @@
 												class="{isLastMessage
 													? 'visible'
 													: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition regenerate-response-button"
-												on:click={() => {
+												onclick={() => {
 													continueResponse();
 
 													(model?.actions ?? [])
@@ -1161,7 +1186,7 @@
 												class="{isLastMessage
 													? 'visible'
 													: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition regenerate-response-button"
-												on:click={() => {
+												onclick={() => {
 													showRateComment = false;
 													regenerateResponse(message);
 
@@ -1204,7 +1229,7 @@
 													class="{isLastMessage
 														? 'visible'
 														: 'invisible group-hover:visible'} p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg dark:hover:text-white hover:text-black transition regenerate-response-button"
-													on:click={() => {
+													onclick={() => {
 														dispatch('action', action.id);
 													}}
 												>

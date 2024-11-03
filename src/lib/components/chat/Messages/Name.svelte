@@ -1,3 +1,11 @@
+<script lang="ts">
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
+</script>
+
 <div class=" self-center font-semibold mb-0.5 line-clamp-1 contents">
-	<slot />
+	{@render children?.()}
 </div>

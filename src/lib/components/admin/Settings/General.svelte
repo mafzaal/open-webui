@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { getBackendConfig, getWebhookUrl, updateWebhookUrl } from '$lib/apis';
 	import { getAdminConfig, updateAdminConfig } from '$lib/apis/auths';
 	import Switch from '$lib/components/common/Switch.svelte';
@@ -8,10 +10,14 @@
 
 	const i18n = getContext('i18n');
 
-	export let saveHandler: Function;
+	interface Props {
+		saveHandler: Function;
+	}
 
-	let adminConfig = null;
-	let webhookUrl = '';
+	let { saveHandler }: Props = $props();
+
+	let adminConfig = $state(null);
+	let webhookUrl = $state('');
 
 	const updateHandler = async () => {
 		webhookUrl = await updateWebhookUrl(localStorage.token, webhookUrl);
@@ -39,9 +45,9 @@
 
 <form
 	class="flex flex-col h-full justify-between space-y-3 text-sm"
-	on:submit|preventDefault={async () => {
+	onsubmit={preventDefault(async () => {
 		updateHandler();
-	}}
+	})}
 >
 	<div class=" space-y-3 overflow-y-scroll scrollbar-hidden h-full">
 		{#if adminConfig !== null}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run, preventDefault } from 'svelte/legacy';
+
 	import { toast } from 'svelte-sonner';
 	import { createEventDispatcher } from 'svelte';
 	import { onMount, getContext } from 'svelte';
@@ -10,27 +12,33 @@
 	const i18n = getContext('i18n');
 	const dispatch = createEventDispatcher();
 
-	export let show = false;
+	interface Props {
+		show?: boolean;
+	}
 
-	let loading = false;
-	let tab = '';
-	let inputFiles;
+	let { show = $bindable(false) }: Props = $props();
 
-	let _user = {
+	let loading = $state(false);
+	let tab = $state('');
+	let inputFiles = $state();
+
+	let _user = $state({
 		name: '',
 		email: '',
 		password: '',
 		role: 'user'
-	};
+	});
 
-	$: if (show) {
-		_user = {
-			name: '',
-			email: '',
-			password: '',
-			role: 'user'
-		};
-	}
+	run(() => {
+		if (show) {
+			_user = {
+				name: '',
+				email: '',
+				password: '',
+				role: 'user'
+			};
+		}
+	});
 
 	const submitHandler = async () => {
 		const stopLoading = () => {
@@ -122,7 +130,7 @@
 			<div class=" text-lg font-medium self-center">{$i18n.t('Add User')}</div>
 			<button
 				class="self-center"
-				on:click={() => {
+				onclick={() => {
 					show = false;
 				}}
 			>
@@ -143,15 +151,15 @@
 			<div class=" flex flex-col w-full sm:flex-row sm:justify-center sm:space-x-6">
 				<form
 					class="flex flex-col w-full"
-					on:submit|preventDefault={() => {
+					onsubmit={preventDefault(() => {
 						submitHandler();
-					}}
+					})}
 				>
 					<div class="flex text-center text-sm font-medium rounded-full bg-transparent/10 p-1 mb-2">
 						<button
 							class="w-full rounded-full p-1.5 {tab === '' ? 'bg-gray-50 dark:bg-gray-850' : ''}"
 							type="button"
-							on:click={() => {
+							onclick={() => {
 								tab = '';
 							}}>{$i18n.t('Form')}</button
 						>
@@ -161,7 +169,7 @@
 								? 'bg-gray-50 dark:bg-gray-850'
 								: ''}"
 							type="button"
-							on:click={() => {
+							onclick={() => {
 								tab = 'import';
 							}}>{$i18n.t('CSV Import')}</button
 						>
@@ -243,7 +251,7 @@
 									<button
 										class="w-full text-sm font-medium py-3 bg-transparent hover:bg-gray-100 border border-dashed dark:border-gray-800 dark:hover:bg-gray-850 text-center rounded-xl"
 										type="button"
-										on:click={() => {
+										onclick={() => {
 											document.getElementById('upload-user-csv-input')?.click();
 										}}
 									>

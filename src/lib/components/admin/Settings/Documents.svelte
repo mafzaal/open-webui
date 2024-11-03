@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { preventDefault } from 'svelte/legacy';
+
 	import { toast } from 'svelte-sonner';
 
 	import { onMount, getContext, createEventDispatcher } from 'svelte';
@@ -33,38 +35,38 @@
 	const i18n = getContext('i18n');
 
 	let scanDirLoading = false;
-	let updateEmbeddingModelLoading = false;
-	let updateRerankingModelLoading = false;
+	let updateEmbeddingModelLoading = $state(false);
+	let updateRerankingModelLoading = $state(false);
 
-	let showResetConfirm = false;
-	let showResetUploadDirConfirm = false;
+	let showResetConfirm = $state(false);
+	let showResetUploadDirConfirm = $state(false);
 
-	let embeddingEngine = '';
-	let embeddingModel = '';
-	let embeddingBatchSize = 1;
-	let rerankingModel = '';
+	let embeddingEngine = $state('');
+	let embeddingModel = $state('');
+	let embeddingBatchSize = $state(1);
+	let rerankingModel = $state('');
 
-	let fileMaxSize = null;
-	let fileMaxCount = null;
+	let fileMaxSize = $state(null);
+	let fileMaxCount = $state(null);
 
-	let contentExtractionEngine = 'default';
-	let tikaServerUrl = '';
-	let showTikaServerUrl = false;
+	let contentExtractionEngine = $state('default');
+	let tikaServerUrl = $state('');
+	let showTikaServerUrl = $state(false);
 
-	let textSplitter = '';
-	let chunkSize = 0;
-	let chunkOverlap = 0;
-	let pdfExtractImages = true;
+	let textSplitter = $state('');
+	let chunkSize = $state(0);
+	let chunkOverlap = $state(0);
+	let pdfExtractImages = $state(true);
 
-	let OpenAIKey = '';
-	let OpenAIUrl = '';
+	let OpenAIKey = $state('');
+	let OpenAIUrl = $state('');
 
-	let querySettings = {
+	let querySettings = $state({
 		template: '',
 		r: 0.0,
 		k: 4,
 		hybrid: false
-	};
+	});
 
 	const embeddingModelUpdateHandler = async () => {
 		if (embeddingEngine === '' && embeddingModel.split('/').length - 1 > 1) {
@@ -277,9 +279,9 @@
 
 <form
 	class="flex flex-col h-full justify-between space-y-3 text-sm"
-	on:submit|preventDefault={() => {
+	onsubmit={preventDefault(() => {
 		submitHandler();
-	}}
+	})}
 >
 	<div class=" space-y-2.5 overflow-y-scroll scrollbar-hidden h-full pr-1.5">
 		<div class="flex flex-col gap-0.5">
@@ -292,7 +294,7 @@
 						class="dark:bg-gray-900 w-fit pr-8 rounded px-2 p-1 text-xs bg-transparent outline-none text-right"
 						bind:value={embeddingEngine}
 						placeholder="Select an embedding model engine"
-						on:change={(e) => {
+						onchange={(e) => {
 							if (e.target.value === 'ollama') {
 								embeddingModel = '';
 							} else if (e.target.value === 'openai') {
@@ -353,7 +355,7 @@
 
 				<button
 					class="p-1 px-3 text-xs flex rounded transition"
-					on:click={() => {
+					onclick={() => {
 						toggleHybridSearch();
 					}}
 					type="button"
@@ -369,7 +371,7 @@
 
 		<hr class="dark:border-gray-850" />
 
-		<div class="space-y-2" />
+		<div class="space-y-2"></div>
 		<div>
 			<div class=" mb-2 text-sm font-medium">{$i18n.t('Embedding Model')}</div>
 
@@ -406,7 +408,7 @@
 					{#if embeddingEngine === ''}
 						<button
 							class="px-2.5 bg-gray-50 hover:bg-gray-200 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-100 rounded-lg transition"
-							on:click={() => {
+							onclick={() => {
 								embeddingModelUpdateHandler();
 							}}
 							disabled={updateEmbeddingModelLoading}
@@ -483,7 +485,7 @@
 						</div>
 						<button
 							class="px-2.5 bg-gray-50 hover:bg-gray-200 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-100 rounded-lg transition"
-							on:click={() => {
+							onclick={() => {
 								rerankingModelUpdateHandler();
 							}}
 							disabled={updateRerankingModelLoading}
@@ -550,7 +552,7 @@
 					<select
 						class="dark:bg-gray-900 w-fit pr-8 rounded px-2 text-xs bg-transparent outline-none text-right"
 						bind:value={contentExtractionEngine}
-						on:change={(e) => {
+						onchange={(e) => {
 							showTikaServerUrl = e.target.value === 'tika';
 						}}
 					>
@@ -760,7 +762,7 @@
 		<div>
 			<button
 				class=" flex rounded-xl py-2 px-3.5 w-full hover:bg-gray-200 dark:hover:bg-gray-800 transition"
-				on:click={() => {
+				onclick={() => {
 					showResetUploadDirConfirm = true;
 				}}
 				type="button"
@@ -787,7 +789,7 @@
 
 			<button
 				class=" flex rounded-xl py-2 px-3.5 w-full hover:bg-gray-200 dark:hover:bg-gray-800 transition"
-				on:click={() => {
+				onclick={() => {
 					showResetConfirm = true;
 				}}
 				type="button"

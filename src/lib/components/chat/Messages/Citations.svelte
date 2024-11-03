@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { getContext } from 'svelte';
 	import CitationsModal from './CitationsModal.svelte';
 	import Collapsible from '$lib/components/common/Collapsible.svelte';
@@ -7,15 +9,15 @@
 
 	const i18n = getContext('i18n');
 
-	export let citations = [];
+	let { citations = [] } = $props();
 
-	let _citations = [];
-	let showPercentage = false;
-	let showRelevance = true;
+	let _citations = $state([]);
+	let showPercentage = $state(false);
+	let showRelevance = $state(true);
 
-	let showCitationModal = false;
-	let selectedCitation: any = null;
-	let isCollapsibleOpen = false;
+	let showCitationModal = $state(false);
+	let selectedCitation: any = $state(null);
+	let isCollapsibleOpen = $state(false);
 
 	function calculateShowRelevance(citations: any[]) {
 		const distances = citations.flatMap((citation) => citation.distances ?? []);
@@ -41,7 +43,7 @@
 		return distances.every((d) => d !== undefined && d >= -1 && d <= 1);
 	}
 
-	$: {
+	run(() => {
 		_citations = citations.reduce((acc, citation) => {
 			citation.document.forEach((document, index) => {
 				const metadata = citation.metadata?.[index];
@@ -78,7 +80,7 @@
 
 		showRelevance = calculateShowRelevance(_citations);
 		showPercentage = shouldShowPercentage(_citations);
-	}
+	});
 </script>
 
 <CitationsModal
@@ -95,7 +97,7 @@
 				<div class="flex gap-1 text-xs font-semibold">
 					<button
 						class="no-toggle flex dark:text-gray-300 py-1 px-1 bg-gray-50 hover:bg-gray-100 dark:bg-gray-850 dark:hover:bg-gray-800 transition rounded-xl max-w-96"
-						on:click={() => {
+						onclick={() => {
 							showCitationModal = true;
 							selectedCitation = citation;
 						}}
@@ -126,7 +128,7 @@
 									<div class="flex items-center">
 										<button
 											class="no-toggle flex dark:text-gray-300 py-1 px-1 bg-gray-50 hover:bg-gray-100 dark:bg-gray-850 dark:hover:bg-gray-800 transition rounded-xl max-w-96 text-xs font-semibold"
-											on:click={() => {
+											onclick={() => {
 												showCitationModal = true;
 												selectedCitation = citation;
 											}}
@@ -149,7 +151,7 @@
 									<div class="flex items-center">
 										<button
 											class="no-toggle flex dark:text-gray-300 py-1 px-1 bg-gray-50 hover:bg-gray-100 dark:bg-gray-850 dark:hover:bg-gray-800 transition rounded-xl max-w-96 text-xs font-semibold"
-											on:click={() => {
+											onclick={() => {
 												showCitationModal = true;
 												selectedCitation = citation;
 											}}
@@ -189,30 +191,32 @@
 						{/if}
 					</div>
 				</div>
-				<div slot="content" class="mt-2">
-					<div class="flex flex-wrap gap-2">
-						{#each _citations as citation, idx}
-							<div class="flex gap-1 text-xs font-semibold">
-								<button
-									class="no-toggle flex dark:text-gray-300 py-1 px-1 bg-gray-50 hover:bg-gray-100 dark:bg-gray-850 dark:hover:bg-gray-800 transition rounded-xl max-w-96"
-									on:click={() => {
+				{#snippet content()}
+								<div  class="mt-2">
+						<div class="flex flex-wrap gap-2">
+							{#each _citations as citation, idx}
+								<div class="flex gap-1 text-xs font-semibold">
+									<button
+										class="no-toggle flex dark:text-gray-300 py-1 px-1 bg-gray-50 hover:bg-gray-100 dark:bg-gray-850 dark:hover:bg-gray-800 transition rounded-xl max-w-96"
+										onclick={() => {
 										showCitationModal = true;
 										selectedCitation = citation;
 									}}
-								>
-									{#if _citations.every((c) => c.distances !== undefined)}
-										<div class="bg-white dark:bg-gray-700 rounded-full size-4">
-											{idx + 1}
+									>
+										{#if _citations.every((c) => c.distances !== undefined)}
+											<div class="bg-white dark:bg-gray-700 rounded-full size-4">
+												{idx + 1}
+											</div>
+										{/if}
+										<div class="flex-1 mx-2 line-clamp-1">
+											{citation.source.name}
 										</div>
-									{/if}
-									<div class="flex-1 mx-2 line-clamp-1">
-										{citation.source.name}
-									</div>
-								</button>
-							</div>
-						{/each}
+									</button>
+								</div>
+							{/each}
+						</div>
 					</div>
-				</div>
+							{/snippet}
 			</Collapsible>
 		{/if}
 	</div>

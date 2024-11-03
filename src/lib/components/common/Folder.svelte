@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { getContext, createEventDispatcher, onMount, onDestroy } from 'svelte';
 
 	const i18n = getContext('i18n');
@@ -8,17 +8,29 @@
 	import ChevronRight from '../icons/ChevronRight.svelte';
 	import Collapsible from './Collapsible.svelte';
 
-	export let open = true;
 
-	export let id = '';
-	export let name = '';
-	export let collapsible = true;
 
-	export let className = '';
+	interface Props {
+		open?: boolean;
+		id?: string;
+		name?: string;
+		collapsible?: boolean;
+		className?: string;
+		children?: import('svelte').Snippet;
+	}
 
-	let folderElement;
+	let {
+		open = $bindable(true),
+		id = '',
+		name = '',
+		collapsible = true,
+		className = '',
+		children
+	}: Props = $props();
 
-	let draggedOver = false;
+	let folderElement = $state();
+
+	let draggedOver = $state(false);
 
 	const onDragOver = (e) => {
 		e.preventDefault();
@@ -112,7 +124,7 @@
 				dispatch('change', e.detail);
 			}}
 		>
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div class="w-full">
 				<button
 					class="w-full py-1.5 px-2 rounded-md flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-500 font-medium hover:bg-gray-100 dark:hover:bg-gray-900 transition"
@@ -131,11 +143,13 @@
 				</button>
 			</div>
 
-			<div slot="content" class="w-full">
-				<slot></slot>
-			</div>
+			{#snippet content()}
+						<div  class="w-full">
+					{@render children?.()}
+				</div>
+					{/snippet}
 		</Collapsible>
 	{:else}
-		<slot></slot>
+		{@render children?.()}
 	{/if}
 </div>

@@ -1,4 +1,6 @@
 <script>
+	import { preventDefault } from 'svelte/legacy';
+
 	import { v4 as uuidv4 } from 'uuid';
 	import { toast } from 'svelte-sonner';
 	import { goto } from '$app/navigation';
@@ -31,28 +33,28 @@
 
 	const i18n = getContext('i18n');
 
-	let loading = false;
+	let loading = $state(false);
 	let success = false;
 
-	let filesInputElement;
-	let inputFiles;
+	let filesInputElement = $state();
+	let inputFiles = $state();
 
 	let digest = '';
 	let pullProgress = null;
 
-	let showAdvanced = false;
-	let showPreview = false;
+	let showAdvanced = $state(false);
+	let showPreview = $state(false);
 
 	// ///////////
 	// model
 	// ///////////
 
-	let model = null;
+	let model = $state(null);
 
-	let id = '';
-	let name = '';
+	let id = $state('');
+	let name = $state('');
 
-	let info = {
+	let info = $state({
 		id: '',
 		base_model_id: null,
 		name: '',
@@ -65,17 +67,17 @@
 		params: {
 			system: ''
 		}
-	};
+	});
 
-	let params = {};
-	let capabilities = {
+	let params = $state({});
+	let capabilities = $state({
 		vision: true
-	};
+	});
 
-	let knowledge = [];
-	let toolIds = [];
-	let filterIds = [];
-	let actionIds = [];
+	let knowledge = $state([]);
+	let toolIds = $state([]);
+	let filterIds = $state([]);
+	let actionIds = $state([]);
 
 	const updateHandler = async () => {
 		loading = true;
@@ -228,7 +230,7 @@
 		type="file"
 		hidden
 		accept="image/*"
-		on:change={() => {
+		onchange={() => {
 			let reader = new FileReader();
 			reader.onload = (event) => {
 				let originalImageUrl = `${event.target.result}`;
@@ -291,7 +293,7 @@
 
 	<button
 		class="flex space-x-1"
-		on:click={() => {
+		onclick={() => {
 			goto('/workspace/models');
 		}}
 	>
@@ -315,9 +317,9 @@
 	{#if model}
 		<form
 			class="flex flex-col max-w-2xl mx-auto mt-4 mb-10"
-			on:submit|preventDefault={() => {
+			onsubmit={preventDefault(() => {
 				updateHandler();
-			}}
+			})}
 		>
 			<div class="flex justify-center my-4">
 				<div class="self-center">
@@ -326,7 +328,7 @@
 							? ''
 							: 'p-4'} rounded-full border border-dashed border-gray-200 flex items-center"
 						type="button"
-						on:click={() => {
+						onclick={() => {
 							filesInputElement.click();
 						}}
 					>
@@ -410,7 +412,7 @@
 					<button
 						class="p-1 text-xs flex rounded transition"
 						type="button"
-						on:click={() => {
+						onclick={() => {
 							if (info.meta.description === null) {
 								info.meta.description = '';
 							} else {
@@ -432,7 +434,7 @@
 						placeholder={$i18n.t('Add a short description about what this model does')}
 						bind:value={info.meta.description}
 						row="3"
-					/>
+					></textarea>
 				{/if}
 			</div>
 
@@ -466,7 +468,7 @@
 						<button
 							class="p-1 px-3 text-xs flex rounded transition"
 							type="button"
-							on:click={() => {
+							onclick={() => {
 								showAdvanced = !showAdvanced;
 							}}
 						>
@@ -502,7 +504,7 @@
 						<button
 							class="p-1 text-xs flex rounded transition"
 							type="button"
-							on:click={() => {
+							onclick={() => {
 								if ((info?.meta?.suggestion_prompts ?? null) === null) {
 									info.meta.suggestion_prompts = [{ content: '' }];
 								} else {
@@ -522,7 +524,7 @@
 						<button
 							class="p-1 px-2 text-xs flex rounded transition"
 							type="button"
-							on:click={() => {
+							onclick={() => {
 								if (
 									info.meta.suggestion_prompts.length === 0 ||
 									info.meta.suggestion_prompts.at(-1).content !== ''
@@ -559,7 +561,7 @@
 									<button
 										class="px-2"
 										type="button"
-										on:click={() => {
+										onclick={() => {
 											info.meta.suggestion_prompts.splice(promptIdx, 1);
 											info.meta.suggestion_prompts = info.meta.suggestion_prompts;
 										}}
@@ -641,7 +643,7 @@
 					<button
 						class="p-1 px-3 text-xs flex rounded transition"
 						type="button"
-						on:click={() => {
+						onclick={() => {
 							showPreview = !showPreview;
 						}}
 					>
@@ -661,7 +663,7 @@
 							value={JSON.stringify(info, null, 2)}
 							disabled
 							readonly
-						/>
+						></textarea>
 					</div>
 				{/if}
 			</div>

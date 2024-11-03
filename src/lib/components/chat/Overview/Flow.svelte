@@ -6,9 +6,7 @@
 	import { theme } from '$lib/stores';
 	import { Background, Controls, SvelteFlow, BackgroundVariant } from '@xyflow/svelte';
 
-	export let nodes;
-	export let nodeTypes;
-	export let edges;
+	let { nodes, nodeTypes, edges } = $props();
 </script>
 
 <SvelteFlow
